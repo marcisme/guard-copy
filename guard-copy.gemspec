@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'guard', '~> 1.0'
 
   gem.add_development_dependency 'bundler', '>= 1.1.0'
+  gem.add_development_dependency 'rake', '>= 0.9.2'
   gem.add_development_dependency 'aruba', '~> 0.4'
   gem.add_development_dependency 'guard-cucumber', '>= 0.8'
 
