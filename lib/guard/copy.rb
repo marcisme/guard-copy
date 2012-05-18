@@ -1,9 +1,12 @@
 require 'guard'
 require 'guard/guard'
 require 'guard/copy/version'
+require 'fileutils'
 
 module Guard
   class Copy < Guard
+
+    attr_reader :targets
 
     # Initialize a Guard.
     # @param [Array<Guard::Watcher>] watchers the Guard file watchers
@@ -11,14 +14,18 @@ module Guard
     def initialize(watchers = [], options = {})
       # watchers are currently ignored
       watchers << ::Guard::Watcher.new(%r{#{options[:from]}/.*})
-      @targets = options[:to].is_a?(Array) ? options[:to] : [options[:to]]
-      UI.info("Guard::Copy will copy files from '#{options[:from]}' to '#{@targets.first}'")
+      @targets = Array(options[:to]).freeze
       super
     end
 
     # Call once when Guard starts. Please override initialize method to init stuff.
     # @raise [:task_has_failed] when start has failed
     def start
+      unless options[:from]
+        throw :task_has_failed, 'Guard::Copy requires a valid source directory in :from'
+      end
+      UI.info("Guard::Copy will copy files from '#{options[:from]}' to:")
+      @targets.each { |target| UI.info("  #{target}") }
     end
 
     # Called when just `enter` is pressed
@@ -45,7 +52,7 @@ module Guard
 
     # Called on file(s) deletions that the Guard watches.
     # @param [Array<String>] paths the deleted files or paths
-    # @raise [:task_has_failed] when run_on_change has failed
+    # @raise [:task_has_failed] when run_on_deletion has failed
     def run_on_deletion(paths)
     end
 
