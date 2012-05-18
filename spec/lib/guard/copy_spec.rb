@@ -100,11 +100,8 @@ module Guard
 
       it 'copies files to newest glob directories' do
         path('source/foo')
-        # TODO:
-        # fakefs does not like setting mtime with touch, but it does seem to preserve creation order.
-        # This maybe? https://github.com/defunkt/fakefs/issues/43
-        dir('target_old')
-        dir('target_new')
+        dir('target_old', 1978)
+        dir('target_new', 2012)
         guard = Copy.new([], :from => 'source', :to => 'target*', :glob => :newest)
 
         guard.run_on_change(['source/foo'])
