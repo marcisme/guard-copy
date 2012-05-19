@@ -9,17 +9,13 @@ end
 module FileHelpers
 
   def file(f)
+    dir(File.dirname(f))
     FileUtils.touch(f)
   end
 
   def dir(d, mtime = nil)
     dir = FileUtils.mkpath(d)
     dir.mtime = Time.utc(mtime) if mtime
-  end
-
-  def path(p)
-    dir(File.dirname(p))
-    file(p)
   end
 
 end

@@ -65,7 +65,7 @@ module Guard
     describe '#run_on_change' do
 
       it 'copies files to a single target directory' do
-        path('source/foo')
+        file('source/foo')
         dir('target')
         guard = Copy.new([], :from => 'source', :to => 'target')
 
@@ -75,7 +75,7 @@ module Guard
       end
 
       it 'copies files to multiple target directories' do
-        path('source/foo')
+        file('source/foo')
         dir('t1')
         dir('t2')
         guard = Copy.new([], :from => 'source', :to => ['t1', 't2'])
@@ -87,7 +87,7 @@ module Guard
       end
 
       it 'copies files to globbed directories' do
-        path('source/foo')
+        file('source/foo')
         dir('t1')
         dir('t2')
         guard = Copy.new([], :from => 'source', :to => 't*')
@@ -99,7 +99,7 @@ module Guard
       end
 
       it 'copies files to newest glob directories' do
-        path('source/foo')
+        file('source/foo')
         dir('target_old', 1978)
         dir('target_new', 2012)
         guard = Copy.new([], :from => 'source', :to => 'target*', :glob => :newest)
