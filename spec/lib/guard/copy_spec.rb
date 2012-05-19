@@ -45,16 +45,11 @@ module Guard
         )
       end
 
-      it 'displays :from and :to directories when single target' do
-        guard = Copy.new([], :from => 'source', :to => 'target')
-        UI.expects(:info).with("Guard::Copy will copy files from 'source' to:")
-        UI.expects(:info).with("  target")
-        guard.start
-      end
-
-      it 'displays :from and :to directories when multiple targets' do
+      it 'displays :from and :to directories' do
         guard = Copy.new([], :from => 'source', :to => ['t1', 't2'])
-        UI.expects(:info).with("Guard::Copy will copy files from 'source' to:")
+        UI.expects(:info).with("Guard::Copy will copy files from:")
+        UI.expects(:info).with("  source")
+        UI.expects(:info).with("to:")
         UI.expects(:info).with("  t1")
         UI.expects(:info).with("  t2")
         guard.start

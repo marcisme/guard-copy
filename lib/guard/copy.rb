@@ -24,7 +24,9 @@ module Guard
       unless options[:from]
         throw :task_has_failed, 'Guard::Copy requires a valid source directory in :from'
       end
-      UI.info("Guard::Copy will copy files from '#{options[:from]}' to:")
+      UI.info("Guard::Copy will copy files from:")
+      UI.info("  #{options[:from]}")
+      UI.info("to:")
       @targets.each { |target| UI.info("  #{target}") }
     end
 
