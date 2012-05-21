@@ -14,7 +14,7 @@ module Guard
     def initialize(watchers = [], options = {})
       # watchers are currently ignored
       watchers << ::Guard::Watcher.new(%r{#{options[:from]}/.*})
-      @targets = Array(options[:to]).freeze
+      options[:to] = Array(options[:to]).freeze
       super
     end
 
@@ -22,8 +22,15 @@ module Guard
     # @raise [:task_has_failed] when start has failed
     def start
       unless options[:from]
-        throw :task_has_failed, 'Guard::Copy requires a valid source directory in :from'
+        throw :task_has_failed, 'Guard::Copy - :from option is required'
       end
+      unless File.directory?(options[:from])
+        throw :task_has_failed, 'Guard::Copy - :from option does not contain a valid directory'
+      end
+      if options[:to].empty?
+        throw :task_has_failed, 'Guard::Copy - :to option is required'
+      end
+      @targets = resolve_targets
       UI.info("Guard::Copy will copy files from:")
       UI.info("  #{options[:from]}")
       UI.info("to:")
@@ -42,12 +49,8 @@ module Guard
     def run_on_change(paths)
       paths.each do |from_path|
         @targets.each do |target|
-          target_dirs = target_dirs(target)
-          if target_dirs.empty?
-            UI.error("'#{target}' does not match any directories")
-          else
-            copy(from_path, target_dirs)
-          end
+          to_path = from_path.sub(@options[:from], target)
+          FileUtils.cp(from_path, to_path)
         end
       end
     end
@@ -60,21 +63,17 @@ module Guard
 
     private
 
-    def target_dirs(target)
-      if @options[:glob] == :newest
-        Dir[target].sort_by { |f| File.mtime(f) }.last(1)
-      else
-        Dir[target]
-      end
-    end
-
-    def copy(from_path, target_dirs)
-      target_dirs.each do |target_dir|
-        if File.directory?(target_dir)
-          to_path = from_path.sub(@options[:from], target_dir)
-          FileUtils.cp(from_path, to_path)
-        else
-          UI.error("'#{target_dir}' is not a directory")
+    def resolve_targets
+      Array.new.tap do |dirs|
+        options[:to].each do |to|
+          if @options[:glob] == :newest
+            dirs.concat(Dir[to].sort_by { |f| File.mtime(f) }.last(1))
+          else
+            dirs.concat(Dir[to])
+          end
+        end
+        if dirs.empty?
+          throw :task_has_failed, 'Guard::Copy - :to option does not contain a valid directory'
         end
       end
     end

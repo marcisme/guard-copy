@@ -1,9 +1,18 @@
 require 'fakefs/spec_helpers'
 require 'fileutils'
 
+ENV['GUARD_ENV'] = 'test'
+
 # monkey patch for now
 FakeFS::FakeDir.class_eval do
+
+  # we need to be able to set mtime for newest directory tests
   attr_accessor :mtime
+
+  # fakefs returns full paths, which is inconsistent with real globs
+  def to_s
+    name
+  end
 end
 
 module FileHelpers
