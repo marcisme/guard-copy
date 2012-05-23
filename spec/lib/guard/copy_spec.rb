@@ -63,14 +63,7 @@ module Guard
         expect { guard.start }.to throw_symbol(:task_has_failed)
       end
 
-      it 'throws :task_has_failed when :to directory does not exist' do
-        dir('source')
-        guard = Copy.new([], :from => 'source', :to => 'target')
-        UI.expects(:error).with('Guard::Copy - :to option does not contain a valid directory')
-        expect { guard.start }.to throw_symbol(:task_has_failed)
-      end
-
-      it 'throws :task_has_failed when :from and :to are the same' do
+      it 'throws :task_has_failed when :to includes :from' do
         dir('source')
         guard = Copy.new([], :from => 'source', :to => 'source')
         UI.expects(:error).with('Guard::Copy - :to must not include :from')
@@ -85,7 +78,17 @@ module Guard
         guard.start
       end
 
-      it 'creates targets for paths in :to option' do
+      it 'throws :task_has_failed when :to contains a file' do
+        pending do
+          dir('source')
+          file('target')
+          guard = Copy.new([], :from => 'source', :to => 'target')
+          UI.expects(:error).with('Guard::Copy - :to option contains a file and must be all directories')
+          expect { guard.start }.to throw_symbol(:task_has_failed)
+        end
+      end
+
+      it 'resolves targets for paths in :to option' do
         dir('source')
         dir('target')
         guard = Copy.new([], :from => 'source', :to => 'target')
@@ -93,7 +96,7 @@ module Guard
         guard.targets.should == ['target']
       end
 
-      it 'creates targets globs in :to option' do
+      it 'resolves target globs in :to option' do
         dir('source')
         dir('t1')
         dir('t2')
@@ -118,6 +121,14 @@ module Guard
     end
 
     describe '#run_on_change' do
+
+      it 'throws :task_has_failed when :to has no valid targets' do
+        dir('source')
+        guard = Copy.new([], :from => 'source', :to => 'invalid_target')
+        UI.expects(:error).with("Guard::Copy - cannot copy, no valid :to directories")
+        guard.start
+        expect { guard.run_on_change([]) }.to throw_symbol(:task_has_failed)
+      end
 
       it 'copies files to a single target directory' do
         file('source/foo')

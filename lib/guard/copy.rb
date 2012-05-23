@@ -46,9 +46,6 @@ module Guard
         UI.info("  #{options[:from]}")
         UI.info("to:")
         @targets.each { |target| UI.info("  #{target}") }
-      else
-        UI.error("Guard::Copy - :to option does not contain a valid directory")
-        throw :task_has_failed
       end
     end
 
@@ -62,6 +59,10 @@ module Guard
     # @param [Array<String>] paths the changes files or paths
     # @raise [:task_has_failed] when run_on_change has failed
     def run_on_change(paths)
+      if @targets.empty?
+        UI.error('Guard::Copy - cannot copy, no valid :to directories')
+        throw :task_has_failed
+      end
       paths.each do |from_path|
         @targets.each do |target|
           to_path = from_path.sub(@options[:from], target)
@@ -87,6 +88,9 @@ module Guard
             dirs = Dir[to]
           end
           if dirs.any?
+            #dirs.each do |dir|
+              #throw :task_has_failed if File.file?(dir)
+            #end
             targets.concat(dirs)
           else
             UI.warning("Guard::Copy - '#{to}' does not match a valid directory")
