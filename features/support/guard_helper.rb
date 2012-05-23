@@ -12,7 +12,7 @@ module GuardHelper
 
   def verify_guard_behavior(max_tries = 10)
     # try increasing timeout for travis
-    max_tries *= 5 if ENV['TRAVIS_RUBY_VERSION']
+    max_tries *= 5 if ENV['TRAVIS']
     tries = 0
     begin
       in_current_dir { yield }

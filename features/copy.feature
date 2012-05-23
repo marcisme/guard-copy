@@ -4,15 +4,20 @@ Feature: Copy files
   As a developer
   I want to use guard-copy
 
-  Scenario: Single target startup message
-    When I have run guard with this Guardfile:
+  Scenario: Guardfile template
+    When I run `guard init copy`
+    Then the file "Guardfile" should contain:
       """
+      # Any files created or modified in the 'source' directory
+      # will be copied to the 'target' directory. Update the
+      # guard as appropriate for your needs.
+
       guard :copy, :from => 'source', :to => 'target'
       """
-    Then guard should report that "Guard::Copy will copy files from 'source' to 'target'"
 
   Scenario: Copy a new file
-    Given a directory named "target"
+    Given a directory named "source"
+    And a directory named "target"
     And I have run guard with this Guardfile:
       """
       guard :copy, :from => 'source', :to => 'target'
@@ -30,20 +35,38 @@ Feature: Copy files
     When I append to "source/foo" with "xyz"
     Then "source/foo" should be copied to "target/foo"
 
-  Scenario: Non-existent target directory
-    Given a directory named "target" should not exist
+  Scenario: Copy a file to two targets
+    Given a directory named "source"
+    And a directory named "target_one"
+    And a directory named "target_two"
     And I have run guard with this Guardfile:
       """
-      guard :copy, :from => 'source', :to => 'target'
+      guard :copy, :from => 'source', :to => ['target_one', 'target_two']
       """
     When I create a file named "source/foo"
-    Then guard should report that "'target' does not match any directories"
+    Then "source/foo" should be copied to "target_one/foo"
+    And "source/foo" should be copied to "target_two/foo"
 
-  Scenario: Target directory is a file
-    Given an empty file named "target"
+  Scenario: Wildcard target
+    Given a directory named "source"
+    And a directory named "target_one"
+    And a directory named "target_two"
     And I have run guard with this Guardfile:
       """
-      guard :copy, :from => 'source', :to => 'target'
+      guard :copy, :from => 'source', :to => 'target*'
       """
     When I create a file named "source/foo"
-    Then guard should report that "'target' is not a directory"
+    Then "source/foo" should be copied to "target_one/foo"
+    And "source/foo" should be copied to "target_two/foo"
+
+  Scenario: Newest duplicate option
+    Given a directory named "source"
+    And a directory named "target_older" created in 1978
+    And a directory named "target_newer" created in 2012
+    And I have run guard with this Guardfile:
+      """
+      guard :copy, :from => 'source', :to => 'target*', :glob => :newest
+      """
+    When I create a file named "source/foo"
+    Then "source/foo" should be copied to "target_newer/foo"
+    And "source/foo" should not be copied to "target_older/foo"

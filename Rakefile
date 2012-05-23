@@ -8,4 +8,9 @@ Cucumber::Rake::Task.new do |t|
   t.cucumber_opts = '--format progress'
 end
 
-task :default => :spec
+desc 'run tests as appropriate for environment'
+task :test => :spec do
+  Rake::Task['cucumber'].invoke unless ENV['TRAVIS']
+end
+
+task :default => :test
