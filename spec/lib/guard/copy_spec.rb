@@ -39,36 +39,50 @@ module Guard
 
       it 'throws :task_has_failed when :from is not provided' do
         guard = Copy.new
-        expect { guard.start }.to throw_symbol(
-          :task_has_failed,
-          'Guard::Copy - :from option is required'
-        )
+        UI.expects(:error).with('Guard::Copy - :from option is required')
+        expect { guard.start }.to throw_symbol(:task_has_failed)
       end
 
       it 'throws :task_has_failed when :from directory does not exist' do
         guard = Copy.new([], :from => 'source')
-        expect { guard.start }.to throw_symbol(
-          :task_has_failed,
-          'Guard::Copy - :from option does not contain a valid directory'
-        )
+        UI.expects(:error).with('Guard::Copy - :from option does not contain a valid directory')
+        expect { guard.start }.to throw_symbol(:task_has_failed)
+      end
+
+      it 'throws :task_has_failed when :from directory is a file' do
+        file('source')
+        guard = Copy.new([], :from => 'source')
+        UI.expects(:error).with("Guard::Copy - 'source' is a file and must be a directory")
+        expect { guard.start }.to throw_symbol(:task_has_failed)
       end
 
       it 'throws :task_has_failed when :to is not provided' do
         dir('source')
         guard = Copy.new([], :from => 'source')
-        expect { guard.start }.to throw_symbol(
-          :task_has_failed,
-          'Guard::Copy - :to option is required'
-        )
+        UI.expects(:error).with('Guard::Copy - :to option is required')
+        expect { guard.start }.to throw_symbol(:task_has_failed)
       end
 
       it 'throws :task_has_failed when :to directory does not exist' do
         dir('source')
         guard = Copy.new([], :from => 'source', :to => 'target')
-        expect { guard.start }.to throw_symbol(
-          :task_has_failed,
-          'Guard::Copy - :to option does not contain a valid directory'
-        )
+        UI.expects(:error).with('Guard::Copy - :to option does not contain a valid directory')
+        expect { guard.start }.to throw_symbol(:task_has_failed)
+      end
+
+      it 'throws :task_has_failed when :from and :to are the same' do
+        dir('source')
+        guard = Copy.new([], :from => 'source', :to => 'source')
+        UI.expects(:error).with('Guard::Copy - :to must not include :from')
+        expect { guard.start }.to throw_symbol(:task_has_failed)
+      end
+
+      it 'warns when a :to directory does not exist' do
+        dir('source')
+        dir('target')
+        guard = Copy.new([], :from => 'source', :to => ['target', 'v*'])
+        UI.expects(:warning).with("Guard::Copy - 'v*' does not match a valid directory")
+        guard.start
       end
 
       it 'creates targets for paths in :to option' do

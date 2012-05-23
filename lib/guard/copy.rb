@@ -22,19 +22,34 @@ module Guard
     # @raise [:task_has_failed] when start has failed
     def start
       unless options[:from]
-        throw :task_has_failed, 'Guard::Copy - :from option is required'
+        UI.error('Guard::Copy - :from option is required')
+        throw :task_has_failed
+      end
+      if File.file?(options[:from])
+        UI.error("Guard::Copy - '#{options[:from]}' is a file and must be a directory")
+        throw :task_has_failed
       end
       unless File.directory?(options[:from])
-        throw :task_has_failed, 'Guard::Copy - :from option does not contain a valid directory'
+        UI.error('Guard::Copy - :from option does not contain a valid directory')
+        throw :task_has_failed
       end
       if options[:to].empty?
-        throw :task_has_failed, 'Guard::Copy - :to option is required'
+        UI.error('Guard::Copy - :to option is required')
+        throw :task_has_failed
       end
-      @targets = resolve_targets
-      UI.info("Guard::Copy will copy files from:")
-      UI.info("  #{options[:from]}")
-      UI.info("to:")
-      @targets.each { |target| UI.info("  #{target}") }
+      if options[:to].include?(options[:from])
+        UI.error('Guard::Copy - :to must not include :from')
+        throw :task_has_failed
+      end
+      if resolve_targets.any?
+        UI.info("Guard::Copy will copy files from:")
+        UI.info("  #{options[:from]}")
+        UI.info("to:")
+        @targets.each { |target| UI.info("  #{target}") }
+      else
+        UI.error("Guard::Copy - :to option does not contain a valid directory")
+        throw :task_has_failed
+      end
     end
 
     # Called when just `enter` is pressed
@@ -64,16 +79,18 @@ module Guard
     private
 
     def resolve_targets
-      Array.new.tap do |dirs|
+      @targets = Array.new.tap do |targets|
         options[:to].each do |to|
           if @options[:glob] == :newest
-            dirs.concat(Dir[to].sort_by { |f| File.mtime(f) }.last(1))
+            dirs = Dir[to].sort_by { |f| File.mtime(f) }.last(1)
           else
-            dirs.concat(Dir[to])
+            dirs = Dir[to]
           end
-        end
-        if dirs.empty?
-          throw :task_has_failed, 'Guard::Copy - :to option does not contain a valid directory'
+          if dirs.any?
+            targets.concat(dirs)
+          else
+            UI.warning("Guard::Copy - '#{to}' does not match a valid directory")
+          end
         end
       end
     end
