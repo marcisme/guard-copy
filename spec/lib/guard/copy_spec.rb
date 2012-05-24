@@ -30,7 +30,7 @@ module Guard
       it 'creates a single watcher with :from' do
         guard = Copy.new([], :from => 'source')
         guard.watchers.count.should == 1
-        guard.watchers.first.pattern == %r{source/.*}
+        guard.watchers.first.pattern.should == %r{source/.*}
       end
 
     end
@@ -128,6 +128,18 @@ module Guard
         UI.expects(:error).with("Guard::Copy - cannot copy, no valid :to directories")
         guard.start
         expect { guard.run_on_change([]) }.to throw_symbol(:task_has_failed)
+      end
+
+      it 'throws :task_has_failed when full target path does not exist' do
+        dir('source/some/path/to/some')
+        dir('target')
+        guard = Copy.new([], :from => 'source', :to => 'target')
+        UI.expects(:error).with('Guard::Copy - cannot copy, directory path does not exist:')
+        UI.expects(:error).with('  target/some/path/to/some')
+        guard.start
+        expect {
+          guard.run_on_change(['source/some/path/to/some/file'])
+        }.to throw_symbol(:task_has_failed)
       end
 
       it 'copies files to a single target directory' do

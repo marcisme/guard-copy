@@ -21,27 +21,10 @@ module Guard
     # Call once when Guard starts. Please override initialize method to init stuff.
     # @raise [:task_has_failed] when start has failed
     def start
-      unless options[:from]
-        UI.error('Guard::Copy - :from option is required')
-        throw :task_has_failed
-      end
-      if File.file?(options[:from])
-        UI.error("Guard::Copy - '#{options[:from]}' is a file and must be a directory")
-        throw :task_has_failed
-      end
-      unless File.directory?(options[:from])
-        UI.error('Guard::Copy - :from option does not contain a valid directory')
-        throw :task_has_failed
-      end
-      if options[:to].empty?
-        UI.error('Guard::Copy - :to option is required')
-        throw :task_has_failed
-      end
-      if options[:to].include?(options[:from])
-        UI.error('Guard::Copy - :to must not include :from')
-        throw :task_has_failed
-      end
-      if resolve_targets.any?
+      validate_from
+      validate_to
+      @targets = resolve_targets
+      if @targets.any?
         UI.info("Guard::Copy will copy files from:")
         UI.info("  #{options[:from]}")
         UI.info("to:")
@@ -59,13 +42,11 @@ module Guard
     # @param [Array<String>] paths the changes files or paths
     # @raise [:task_has_failed] when run_on_change has failed
     def run_on_change(paths)
-      if @targets.empty?
-        UI.error('Guard::Copy - cannot copy, no valid :to directories')
-        throw :task_has_failed
-      end
+      validate_targets
       paths.each do |from_path|
         @targets.each do |target|
           to_path = from_path.sub(@options[:from], target)
+          validate_to_path(to_path)
           FileUtils.cp(from_path, to_path)
         end
       end
@@ -79,8 +60,50 @@ module Guard
 
     private
 
+    def validate_from
+      unless options[:from]
+        UI.error('Guard::Copy - :from option is required')
+        throw :task_has_failed
+      end
+      if File.file?(options[:from])
+        UI.error("Guard::Copy - '#{options[:from]}' is a file and must be a directory")
+        throw :task_has_failed
+      end
+      unless File.directory?(options[:from])
+        UI.error('Guard::Copy - :from option does not contain a valid directory')
+        throw :task_has_failed
+      end
+    end
+
+    def validate_to
+      if options[:to].empty?
+        UI.error('Guard::Copy - :to option is required')
+        throw :task_has_failed
+      end
+      if options[:to].include?(options[:from])
+        UI.error('Guard::Copy - :to must not include :from')
+        throw :task_has_failed
+      end
+    end
+
+    def validate_targets
+      if @targets.empty?
+        UI.error('Guard::Copy - cannot copy, no valid :to directories')
+        throw :task_has_failed
+      end
+    end
+
+    def validate_to_path(to_path)
+      to_dir = File.dirname(to_path)
+      unless File.directory?(to_dir)
+        UI.error('Guard::Copy - cannot copy, directory path does not exist:')
+        UI.error("  #{to_dir}")
+        throw :task_has_failed
+      end
+    end
+
     def resolve_targets
-      @targets = Array.new.tap do |targets|
+      Array.new.tap do |targets|
         options[:to].each do |to|
           if @options[:glob] == :newest
             dirs = Dir[to].sort_by { |f| File.mtime(f) }.last(1)
