@@ -10,7 +10,7 @@ module GuardHelper
     sleep 0.1 until output_from(GUARD_CMD).include?('Guard is now watching')
   end
 
-  def verify_guard_behavior(max_tries = 10)
+  def verify_guard_behavior(max_tries = 20)
     # try increasing timeout for travis
     max_tries *= 5 if ENV['TRAVIS']
     tries = 0
