@@ -30,7 +30,6 @@ module FileHelpers
 end
 
 RSpec.configure do |config|
-  config.mock_framework = :mocha
   config.include FakeFS::SpecHelpers
   config.include FileHelpers
 end
