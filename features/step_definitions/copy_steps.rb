@@ -16,7 +16,7 @@ end
 # This step should be used after the affirmative version to make sure guard
 # has processed the file system changes.
 Then /^"([^"]*)" should not be copied to "([^"]*)"$/ do |from_path, to_path|
-  verify_guard_behavior do
+  verify_guard_behavior(1) do
     File.should_not be_file(to_path)
   end
 end
