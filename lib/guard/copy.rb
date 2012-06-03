@@ -12,8 +12,11 @@ module Guard
     # @param [Array<Guard::Watcher>] watchers the Guard file watchers
     # @param [Hash] options the custom Guard options
     def initialize(watchers = [], options = {})
-      # watchers are currently ignored
-      watchers << ::Guard::Watcher.new(%r{#{options[:from]}/.*})
+      if watchers.empty?
+        watchers << ::Guard::Watcher.new(%r{^#{options[:from]}/.*$})
+      else
+        watchers.each { |w| normalize_watcher(w, options[:from]) }
+      end
       options[:to] = Array(options[:to]).freeze
       super
     end
@@ -59,6 +62,17 @@ module Guard
     end
 
     private
+
+    def normalize_watcher(watcher, from)
+      unless watcher.pattern.source =~ %r{^\^#{from}/.*}
+        normalized_source = watcher.pattern.source.sub(%r{^\^?(#{from})?/?}, "^#{from}/")
+        UI.info('Guard::Copy is changing watcher pattern:')
+        UI.info("  #{watcher.pattern.source}")
+        UI.info('to:')
+        UI.info("  #{normalized_source}")
+        watcher.pattern = Regexp.new(normalized_source)
+      end
+    end
 
     def validate_from
       unless options[:from]

@@ -5,7 +5,7 @@ require 'fileutils'
 module Guard
   describe Copy do
 
-    describe '#initialize' do
+    describe '.initialize' do
 
       it 'converts single :to option to an array' do
         guard = Copy.new([], :to => 'target')
@@ -27,10 +27,55 @@ module Guard
         guard.options[:to].should be_frozen
       end
 
-      it 'creates a single watcher with :from' do
-        guard = Copy.new([], :from => 'source')
-        guard.watchers.count.should == 1
-        guard.watchers.first.pattern.should == %r{source/.*}
+      describe 'watchers' do
+
+        it 'creates a single watcher with :from if no watchers are defined' do
+          guard = Copy.new([], :from => 'source')
+          guard.watchers.count.should == 1
+          guard.watchers.first.pattern.source.should == '^source/.*$'
+        end
+
+        it 'preserves watchers that start with ^ and :from' do
+          guard = Copy.new([Watcher.new(%r{^source/.+\.js$})], :from => 'source')
+          guard.watchers.count.should == 1
+          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
+        end
+
+        it 'prepends watchers with ^' do
+          guard = Copy.new([Watcher.new(%r{source/.+\.js$})], :from => 'source')
+          guard.watchers.count.should == 1
+          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
+        end
+
+        it 'prepends watchers with :from' do
+          guard = Copy.new([Watcher.new(%r{^.+\.js$})], :from => 'source')
+          guard.watchers.count.should == 1
+          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
+        end
+
+        it 'prepends watchers with ^ and :from' do
+          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+          guard.watchers.count.should == 1
+          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
+        end
+
+        it 'informs when changing a watcher pattern' do
+          UI.should_receive(:info).with('Guard::Copy is changing watcher pattern:')
+          UI.should_receive(:info).with('  .+\.js$')
+          UI.should_receive(:info).with('to:')
+          UI.should_receive(:info).with('  ^source/.+\.js$')
+          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+        end
+
+        it 'handles multiple watchers' do
+          guard = Copy.new([
+            Watcher.new(%r{^.+\.js$}),
+            Watcher.new(%r{^.+\.html$})
+          ], :from => 'source')
+          watcher_sources = guard.watchers.map { |w| w.pattern.source }
+          watcher_sources.should =~ ['^source/.+\.js$', '^source/.+\.html$']
+        end
+
       end
 
     end
