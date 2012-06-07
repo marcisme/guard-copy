@@ -165,14 +165,14 @@ module Guard
 
     end
 
-    describe '#run_on_change' do
+    describe '#run_on_changes' do
 
       it 'throws :task_has_failed when :to has no valid targets' do
         dir('source')
         guard = Copy.new([], :from => 'source', :to => 'invalid_target')
         UI.should_receive(:error).with("Guard::Copy - cannot copy, no valid :to directories")
         guard.start
-        expect { guard.run_on_change([]) }.to throw_symbol(:task_has_failed)
+        expect { guard.run_on_changes([]) }.to throw_symbol(:task_has_failed)
       end
 
       it 'throws :task_has_failed when full target path does not exist' do
@@ -183,7 +183,7 @@ module Guard
         UI.should_receive(:error).with('  target/some/path/to/some')
         guard.start
         expect {
-          guard.run_on_change(['source/some/path/to/some/file'])
+          guard.run_on_changes(['source/some/path/to/some/file'])
         }.to throw_symbol(:task_has_failed)
       end
 
@@ -193,7 +193,7 @@ module Guard
         guard = Copy.new([], :from => 'source', :to => 'target')
         guard.start
 
-        guard.run_on_change(['source/foo'])
+        guard.run_on_changes(['source/foo'])
 
         File.should be_file('target/foo')
       end
@@ -205,7 +205,7 @@ module Guard
         guard = Copy.new([], :from => 'source', :to => ['t1', 't2'])
         guard.start
 
-        guard.run_on_change(['source/foo'])
+        guard.run_on_changes(['source/foo'])
 
         File.should be_file('t1/foo')
         File.should be_file('t2/foo')
@@ -218,7 +218,7 @@ module Guard
         guard = Copy.new([], :from => 'source', :to => 't*')
         guard.start
 
-        guard.run_on_change(['source/foo'])
+        guard.run_on_changes(['source/foo'])
 
         File.should be_file('t1/foo')
         File.should be_file('t2/foo')
@@ -231,7 +231,7 @@ module Guard
         guard = Copy.new([], :from => 'source', :to => 'target*', :glob => :newest)
         guard.start
 
-        guard.run_on_change(['source/foo'])
+        guard.run_on_changes(['source/foo'])
 
         File.should_not be_file('target_old/foo')
         File.should be_file('target_new/foo')

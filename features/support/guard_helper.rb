@@ -2,30 +2,31 @@ require 'aruba/api'
 
 module GuardHelper
 
-  # Features sometimes hang when run in guard.
-  # Unsure if this is FS event or IPC related; seeing if -i helps
-  GUARD_CMD = 'guard start -i'
+  # TODO: Features sometimes hang when run in guard.
+  #       Unsure if this is FS event or IPC related; seeing if -i helps
+  # TODO: Guard 1.1 only works in tests with polling (-p), but it works
+  #       fine in manual testing. It seems that file system
+  #       notifications do not get triggered or delivered to the guard
+  #       process when run via Cucumber/Aruba.
+  GUARD_CMD = 'guard start -i -p'
   POLL_INTERVAL = 0.1
+  DEFAULT_WAIT_SECONDS = 2
 
   def start_guard(guardfile_contents)
     write_file('Guardfile', guardfile_contents)
     run_interactive(unescape(GUARD_CMD))
-    sleep POLL_INTERVAL until output_from(GUARD_CMD).include?('Guard is now watching')
+    sleep POLL_INTERVAL until guard_output.include?('Guard is now watching')
   end
 
-  def verify_guard_behavior(max_tries = 20)
-    # try increasing timeout for travis
-    max_tries *= 5 if ENV['TRAVIS']
-    tries = 0
+  def verify_guard_behavior(seconds = DEFAULT_WAIT_SECONDS)
+    start_time = Time.now
+
     begin
       in_current_dir { yield }
     rescue => e
-      if (tries += 1) < max_tries
-        sleep POLL_INTERVAL
-        retry
-      else
-        raise e
-      end
+      raise e if (Time.new - start_time) >= seconds
+      sleep POLL_INTERVAL
+      retry
     end
   end
 
