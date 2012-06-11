@@ -1,6 +1,5 @@
 require 'guard'
 require 'guard/guard'
-require 'guard/copy/version'
 require 'fileutils'
 
 module Guard
