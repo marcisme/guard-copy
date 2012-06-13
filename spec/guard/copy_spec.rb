@@ -1,81 +1,55 @@
 require 'spec_helper'
-require 'guard/copy'
-require 'fileutils'
 
 module Guard
   describe Copy do
 
     describe '.initialize' do
 
-      it 'converts single :to option to an array' do
-        guard = Copy.new([], :to => 'target')
-        guard.options[:to].should == ['target']
+      it 'creates a single watcher with :from if no watchers are defined' do
+        guard = Copy.new([], :from => 'source')
+        guard.watchers.count.should == 1
+        guard.watchers.first.pattern.source.should == '^source/.*$'
       end
 
-      it 'preserves :to array' do
-        guard = Copy.new([], :to => ['t1', 't2'])
-        guard.options[:to].should == ['t1', 't2']
+      it 'preserves watchers that start with ^ and :from' do
+        guard = Copy.new([Watcher.new(%r{^source/.+\.js$})], :from => 'source')
+        guard.watchers.count.should == 1
+        guard.watchers.first.pattern.source.should == '^source/.+\.js$'
       end
 
-      it 'preserves globs in :to array' do
-        guard = Copy.new([], :to => ['t*'])
-        guard.options[:to].should == ['t*']
+      it 'prepends watchers with ^' do
+        guard = Copy.new([Watcher.new(%r{source/.+\.js$})], :from => 'source')
+        guard.watchers.count.should == 1
+        guard.watchers.first.pattern.source.should == '^source/.+\.js$'
       end
 
-      it 'freezes :to array' do
-        guard = Copy.new([], :to => 'target')
-        guard.options[:to].should be_frozen
+      it 'prepends watchers with :from' do
+        guard = Copy.new([Watcher.new(%r{^.+\.js$})], :from => 'source')
+        guard.watchers.count.should == 1
+        guard.watchers.first.pattern.source.should == '^source/.+\.js$'
       end
 
-      describe 'watchers' do
+      it 'prepends watchers with ^ and :from' do
+        guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+        guard.watchers.count.should == 1
+        guard.watchers.first.pattern.source.should == '^source/.+\.js$'
+      end
 
-        it 'creates a single watcher with :from if no watchers are defined' do
-          guard = Copy.new([], :from => 'source')
-          guard.watchers.count.should == 1
-          guard.watchers.first.pattern.source.should == '^source/.*$'
-        end
+      it 'informs when changing a watcher pattern' do
+        UI.should_receive(:info).with('Guard::Copy is changing watcher pattern:')
+        UI.should_receive(:info).with('  .+\.js$')
+        UI.should_receive(:info).with('to:')
+        UI.should_receive(:info).with('  ^source/.+\.js$')
+        guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+      end
 
-        it 'preserves watchers that start with ^ and :from' do
-          guard = Copy.new([Watcher.new(%r{^source/.+\.js$})], :from => 'source')
-          guard.watchers.count.should == 1
-          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
-        end
-
-        it 'prepends watchers with ^' do
-          guard = Copy.new([Watcher.new(%r{source/.+\.js$})], :from => 'source')
-          guard.watchers.count.should == 1
-          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
-        end
-
-        it 'prepends watchers with :from' do
-          guard = Copy.new([Watcher.new(%r{^.+\.js$})], :from => 'source')
-          guard.watchers.count.should == 1
-          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
-        end
-
-        it 'prepends watchers with ^ and :from' do
-          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
-          guard.watchers.count.should == 1
-          guard.watchers.first.pattern.source.should == '^source/.+\.js$'
-        end
-
-        it 'informs when changing a watcher pattern' do
-          UI.should_receive(:info).with('Guard::Copy is changing watcher pattern:')
-          UI.should_receive(:info).with('  .+\.js$')
-          UI.should_receive(:info).with('to:')
-          UI.should_receive(:info).with('  ^source/.+\.js$')
-          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
-        end
-
-        it 'handles multiple watchers' do
-          guard = Copy.new([
-            Watcher.new(%r{^.+\.js$}),
-            Watcher.new(%r{^.+\.html$})
-          ], :from => 'source')
-          watcher_sources = guard.watchers.map { |w| w.pattern.source }
-          watcher_sources.should =~ ['^source/.+\.js$', '^source/.+\.html$']
-        end
-
+      it 'handles multiple watchers' do
+        guard = Copy.new([
+          Watcher.new(%r{^.+\.js$}),
+          Watcher.new(%r{^.+\.html$})
+        ], :from => 'source')
+        watcher_sources = guard.watchers.map { |w| w.pattern.source }
+        watcher_sources.should =~ ['^source/.+\.js$', '^source/.+\.html$']
       end
 
     end
@@ -115,6 +89,14 @@ module Guard
         expect { guard.start }.to throw_symbol(:task_has_failed)
       end
 
+      it 'resolves targets' do
+        dir('source')
+        dir('target')
+        guard = Copy.new([], :from => 'source', :to => 'target')
+        Copy::Target.should_receive(:resolve).with('target', :all).and_return([])
+        guard.start
+      end
+
       it 'warns when a :to directory does not exist' do
         dir('source')
         dir('target')
@@ -131,23 +113,6 @@ module Guard
           UI.should_receive(:error).with('Guard::Copy - :to option contains a file and must be all directories')
           expect { guard.start }.to throw_symbol(:task_has_failed)
         end
-      end
-
-      it 'resolves targets for paths in :to option' do
-        dir('source')
-        dir('target')
-        guard = Copy.new([], :from => 'source', :to => 'target')
-        guard.start
-        guard.targets.should == ['target']
-      end
-
-      it 'resolves target globs in :to option' do
-        dir('source')
-        dir('t1')
-        dir('t2')
-        guard = Copy.new([], :from => 'source', :to => 't*')
-        guard.start
-        guard.targets.should == ['t1', 't2']
       end
 
       it 'displays :from and :to directories' do
@@ -187,18 +152,7 @@ module Guard
         }.to throw_symbol(:task_has_failed)
       end
 
-      it 'copies files to a single target directory' do
-        file('source/foo')
-        dir('target')
-        guard = Copy.new([], :from => 'source', :to => 'target')
-        guard.start
-
-        guard.run_on_changes(['source/foo'])
-
-        File.should be_file('target/foo')
-      end
-
-      it 'copies files to multiple target directories' do
+      it 'copies files to target directories' do
         file('source/foo')
         dir('t1')
         dir('t2')
@@ -209,32 +163,6 @@ module Guard
 
         File.should be_file('t1/foo')
         File.should be_file('t2/foo')
-      end
-
-      it 'copies files to globbed directories' do
-        file('source/foo')
-        dir('t1')
-        dir('t2')
-        guard = Copy.new([], :from => 'source', :to => 't*')
-        guard.start
-
-        guard.run_on_changes(['source/foo'])
-
-        File.should be_file('t1/foo')
-        File.should be_file('t2/foo')
-      end
-
-      it 'copies files to newest glob directories' do
-        file('source/foo')
-        dir('target_old', 1978)
-        dir('target_new', 2012)
-        guard = Copy.new([], :from => 'source', :to => 'target*', :glob => :newest)
-        guard.start
-
-        guard.run_on_changes(['source/foo'])
-
-        File.should_not be_file('target_old/foo')
-        File.should be_file('target_new/foo')
       end
 
     end

@@ -5,19 +5,23 @@ require 'fileutils'
 module Guard
   class Copy < Guard
 
+    autoload :Target, 'guard/copy/target'
+
     attr_reader :targets
 
     # Initialize a Guard.
     # @param [Array<Guard::Watcher>] watchers the Guard file watchers
     # @param [Hash] options the custom Guard options
     def initialize(watchers = [], options = {})
+      super
       if watchers.empty?
         watchers << ::Guard::Watcher.new(%r{^#{options[:from]}/.*$})
       else
         watchers.each { |w| normalize_watcher(w, options[:from]) }
       end
-      options[:to] = Array(options[:to]).freeze
-      super
+      @options = {
+        :glob => :all
+      }.merge(options)
     end
 
     # Call once when Guard starts. Please override initialize method to init stuff.
@@ -25,7 +29,7 @@ module Guard
     def start
       validate_from
       validate_to
-      @targets = resolve_targets
+      @targets = Target.resolve(options[:to], options[:glob])
       if @targets.any?
         UI.info("Guard::Copy will copy files from:")
         UI.info("  #{options[:from]}")
@@ -89,7 +93,7 @@ module Guard
     end
 
     def validate_to
-      if options[:to].empty?
+      unless options[:to]
         UI.error('Guard::Copy - :to option is required')
         throw :task_has_failed
       end
@@ -112,26 +116,6 @@ module Guard
         UI.error('Guard::Copy - cannot copy, directory path does not exist:')
         UI.error("  #{to_dir}")
         throw :task_has_failed
-      end
-    end
-
-    def resolve_targets
-      Array.new.tap do |targets|
-        options[:to].each do |to|
-          if @options[:glob] == :newest
-            dirs = Dir[to].sort_by { |f| File.mtime(f) }.last(1)
-          else
-            dirs = Dir[to]
-          end
-          if dirs.any?
-            #dirs.each do |dir|
-              #throw :task_has_failed if File.file?(dir)
-            #end
-            targets.concat(dirs)
-          else
-            UI.warning("Guard::Copy - '#{to}' does not match a valid directory")
-          end
-        end
       end
     end
 

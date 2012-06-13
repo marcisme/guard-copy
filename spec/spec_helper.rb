@@ -1,5 +1,6 @@
 require 'fakefs/spec_helpers'
 require 'fileutils'
+require 'guard/copy'
 
 ENV['GUARD_ENV'] = 'test'
 
