@@ -2,6 +2,8 @@ module Guard
   class Copy
     class Target
 
+      attr_reader :pattern, :options, :paths
+
       class << self
 
         # Resolve globs into targets.
@@ -30,6 +32,26 @@ module Guard
           end
         end
 
+      end
+
+      def initialize(pattern, options = {})
+        raise ArgumentError, 'pattern cannot be nil' unless pattern
+        raise ArgumentError, 'pattern cannot be empty' if pattern.empty?
+        @pattern = pattern
+        @options = {
+          :glob => :all
+        }.merge(options)
+        @paths = []
+      end
+
+      def resolve
+        @paths.clear
+        if @options[:glob] == :newest
+          @paths.concat(Dir[@pattern].sort_by { |f| File.mtime(f) }.last(1))
+        else
+          @paths.concat(Dir[@pattern])
+        end
+        @paths.any?
       end
 
     end
