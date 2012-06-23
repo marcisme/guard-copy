@@ -19,9 +19,7 @@ module Guard
       else
         watchers.each { |w| normalize_watcher(w, options[:from]) }
       end
-      @options = {
-        :glob => :all
-      }.merge(options)
+      @targets = Array(options[:to]).map { |to| Target.new(to, options) }
     end
 
     # Call once when Guard starts. Please override initialize method to init stuff.
@@ -29,12 +27,19 @@ module Guard
     def start
       validate_from
       validate_to
-      @targets = Target.resolve(options[:to], options[:glob])
-      if @targets.any?
+      target_paths = []
+      @targets.each do |target|
+        if target.resolve
+          target_paths.concat(target.paths)
+        else
+          UI.warning("Guard::Copy - '#{target.pattern}' does not match a valid directory")
+        end
+      end
+      if target_paths.any?
         UI.info("Guard::Copy will copy files from:")
         UI.info("  #{options[:from]}")
         UI.info("to:")
-        @targets.each { |target| UI.info("  #{target}") }
+        target_paths.each { |target_path| UI.info("  #{target_path}") }
       end
     end
 
@@ -51,9 +56,11 @@ module Guard
       validate_targets
       paths.each do |from_path|
         @targets.each do |target|
-          to_path = from_path.sub(@options[:from], target)
-          validate_to_path(to_path)
-          FileUtils.cp(from_path, to_path)
+          target.paths.each do |target_path|
+            to_path = from_path.sub(@options[:from], target_path)
+            validate_to_path(to_path)
+            FileUtils.cp(from_path, to_path)
+          end
         end
       end
     end
@@ -104,7 +111,7 @@ module Guard
     end
 
     def validate_targets
-      if @targets.empty?
+      if @targets.map { |t| t.paths }.flatten.empty?
         UI.error('Guard::Copy - cannot copy, no valid :to directories')
         throw :task_has_failed
       end
