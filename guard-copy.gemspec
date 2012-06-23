@@ -22,6 +22,7 @@ Gem::Specification.new do |gem|
     gem.add_development_dependency 'guard-rspec', '>= 1.0'
     gem.add_development_dependency 'guard-cucumber', '>= 1.0'
     gem.add_development_dependency 'aruba', '~> 0.4'
+    gem.add_development_dependency 'debugger'
   end
 
   gem.files         = Dir.glob('{lib}/**/*') + %w[LICENSE README.md]
