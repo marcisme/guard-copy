@@ -57,11 +57,12 @@ the directory specified by the `:from` option to that specified by the
 ### List of available options:
 
 ``` ruby
-:from => 'source'   # directory to copy files from
-:to => 'target'     # directory or glob to copy files to; can be an array
-:glob => :newest    # how to handle globs; default: :all
-                    #   :newest - copy to only the newest directory
-                    #   :all - copy to all directories
+:from   => 'source'   # directory to copy files from
+:to     => 'target'   # directory or glob to copy files to; can be an array
+:glob   => :newest    # how to handle globs; default: :all
+                      #   :newest - copy to only the newest directory
+                      #   :all    - copy to all directories
+:delete => true       # delete files from target directories
 ```
 
 ## Watchers

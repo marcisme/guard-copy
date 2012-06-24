@@ -200,5 +200,61 @@ module Guard
 
     end
 
+    describe '#run_on_removals' do
+
+      context 'with no valid targets' do
+        it 'throws :task_has_failed' do
+          dir('source')
+          guard = Copy.new([], :from => 'source', :to => 'invalid_target', :delete => true)
+          UI.should_receive(:error).with("Guard::Copy - cannot delete, no valid :to directories")
+          guard.start
+          expect { guard.run_on_removals([]) }.to throw_symbol(:task_has_failed)
+        end
+      end
+
+      context 'with missing target file' do
+        it 'throws :task_has_failed' do
+          file('source/foo')
+          dir('target')
+          guard = Copy.new([], :from => 'source', :to => 'target', :delete => true)
+          UI.should_receive(:error).with("Guard::Copy - cannot delete, file does not exist:")
+          UI.should_receive(:error).with("  target/foo")
+          guard.start
+          expect { guard.run_on_removals(['source/foo']) }.to throw_symbol(:task_has_failed)
+        end
+      end
+
+      context 'when :delete is true' do
+        it 'deletes the target file' do
+          file('source/foo')
+          file('t1/foo')
+          file('t2/foo')
+          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true)
+          guard.start
+
+          guard.run_on_removals(['source/foo'])
+
+          File.should_not be_file('t1/foo')
+          File.should_not be_file('t2/foo')
+        end
+      end
+
+      context 'when :delete is false (or nil)' do
+        it 'does not delete the target file' do
+          file('source/foo')
+          file('t1/foo')
+          file('t2/foo')
+          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => false)
+          guard.start
+
+          guard.run_on_removals(['source/foo'])
+
+          File.should be_file('t1/foo')
+          File.should be_file('t2/foo')
+        end
+      end
+
+    end
+
   end
 end

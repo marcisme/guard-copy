@@ -21,6 +21,12 @@ Then /^"([^"]*)" should not be copied to "([^"]*)"$/ do |from_path, to_path|
   end
 end
 
+Then /^"(.*?)" should not exist$/ do |file|
+  verify_guard_behavior do
+    File.should_not be_file(file)
+  end
+end
+
 Then /^guard should report that "([^"]*)"$/ do |output|
   verify_guard_behavior do
     guard_output.should include(output)

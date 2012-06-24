@@ -52,15 +52,10 @@ module Guard
     # @param [Array<String>] paths the changes files or paths
     # @raise [:task_has_failed] when run_on_changes has failed
     def run_on_changes(paths)
-      validate_at_least_one_target
-      paths.each do |from_path|
-        @targets.each do |target|
-          target.paths.each do |target_path|
-            to_path = from_path.sub(@options[:from], target_path)
-            validate_to_path(to_path)
-            FileUtils.cp(from_path, to_path)
-          end
-        end
+      validate_at_least_one_target('copy')
+      with_all_target_paths(paths) do |from_path, to_path|
+        validate_to_path(to_path)
+        FileUtils.cp(from_path, to_path)
       end
     end
 
@@ -68,12 +63,27 @@ module Guard
     # @param [Array<String>] paths the deleted files or paths
     # @raise [:task_has_failed] when run_on_removals has failed
     def run_on_removals(paths)
+      return unless options[:delete]
+      validate_at_least_one_target('delete')
+      with_all_target_paths(paths) do |_, to_path|
+        validate_to_file(to_path)
+        FileUtils.rm(to_path)
+      end
     end
 
     private
 
     def target_paths
       @targets.map { |t| t.paths }.flatten
+    end
+
+    def with_all_target_paths(paths)
+      paths.each do |from_path|
+        target_paths.each do |target_path|
+          to_path = from_path.sub(@options[:from], target_path)
+          yield(from_path, to_path)
+        end
+      end
     end
 
     def normalize_watcher(watcher, from)
@@ -114,9 +124,9 @@ module Guard
       end
     end
 
-    def validate_at_least_one_target
+    def validate_at_least_one_target(operation)
       if target_paths.empty?
-        UI.error('Guard::Copy - cannot copy, no valid :to directories')
+        UI.error("Guard::Copy - cannot #{operation}, no valid :to directories")
         throw :task_has_failed
       end
     end
@@ -126,6 +136,14 @@ module Guard
       unless File.directory?(to_dir)
         UI.error('Guard::Copy - cannot copy, directory path does not exist:')
         UI.error("  #{to_dir}")
+        throw :task_has_failed
+      end
+    end
+
+    def validate_to_file(to_file)
+      unless File.file?(to_file)
+        UI.error('Guard::Copy - cannot delete, file does not exist:')
+        UI.error("  #{to_file}")
         throw :task_has_failed
       end
     end
