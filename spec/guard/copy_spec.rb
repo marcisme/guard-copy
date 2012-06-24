@@ -161,6 +161,22 @@ module Guard
         guard.start
       end
 
+      context 'when delete is true' do
+        it 'displays that delete is enabled' do
+          dir('source')
+          dir('t1')
+          dir('t2')
+          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true)
+          UI.should_receive(:info).with("Guard::Copy will delete files removed from:")
+          UI.should_receive(:info).with("  source")
+          UI.should_receive(:info).with("from:")
+          UI.should_receive(:info).with("  t1")
+          UI.should_receive(:info).with("  t2")
+          UI.should_receive(:info).any_number_of_times # don't worry about unrelated info
+          guard.start
+        end
+      end
+
     end
 
     describe '#run_on_changes' do

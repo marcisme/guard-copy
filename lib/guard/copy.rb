@@ -39,6 +39,13 @@ module Guard
         UI.info("  #{options[:from]}")
         UI.info("to:")
         target_paths.each { |target_path| UI.info("  #{target_path}") }
+
+        if options[:delete]
+          UI.info("Guard::Copy will delete files removed from:")
+          UI.info("  #{options[:from]}")
+          UI.info("from:")
+          target_paths.each { |target_path| UI.info("  #{target_path}") }
+        end
       end
     end
 
