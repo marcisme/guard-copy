@@ -13,18 +13,6 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'guard', '~> 1.1.1'
 
-  gem.add_development_dependency 'bundler', '>= 1.1.0'
-  gem.add_development_dependency 'rake', '>= 0.9.2'
-  gem.add_development_dependency 'rspec', '>= 2.10.0'
-  gem.add_development_dependency 'fakefs', '>= 0.4.0'
-
-  unless ENV['TRAVIS']
-    gem.add_development_dependency 'guard-rspec', '>= 1.0'
-    gem.add_development_dependency 'guard-cucumber', '>= 1.0'
-    gem.add_development_dependency 'aruba', '~> 0.4'
-    gem.add_development_dependency 'debugger'
-  end
-
   gem.files         = Dir.glob('{lib}/**/*') + %w[LICENSE README.md]
   gem.require_path  = 'lib'
 end
