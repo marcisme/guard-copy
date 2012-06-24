@@ -55,6 +55,7 @@ module Guard
       validate_at_least_one_target('copy')
       with_all_target_paths(paths) do |from_path, to_path|
         validate_to_path(to_path)
+        UI.info("copying to #{to_path}") if options[:verbose]
         FileUtils.cp(from_path, to_path)
       end
     end
@@ -67,6 +68,7 @@ module Guard
       validate_at_least_one_target('delete')
       with_all_target_paths(paths) do |_, to_path|
         validate_to_file(to_path)
+        UI.info("deleting #{to_path}") if options[:verbose]
         FileUtils.rm(to_path)
       end
     end

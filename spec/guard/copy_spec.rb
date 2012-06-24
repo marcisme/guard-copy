@@ -198,6 +198,32 @@ module Guard
         File.should be_file('t2/foo')
       end
 
+      context 'when :verbose is false (or nil)' do
+        it 'does not log copy operation' do
+          file('source/foo')
+          dir('target')
+          guard = Copy.new([], :from => 'source', :to => 'target')
+          guard.start
+          UI.should_not_receive(:info)
+
+          guard.run_on_changes(['source/foo'])
+        end
+      end
+
+      context 'when :verbose is true' do
+        it 'logs copy operation' do
+          file('source/foo')
+          dir('t1')
+          dir('t2')
+          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :verbose => true)
+          guard.start
+          UI.should_receive(:info).with('copying to t1/foo')
+          UI.should_receive(:info).with('copying to t2/foo')
+
+          guard.run_on_changes(['source/foo'])
+        end
+      end
+
     end
 
     describe '#run_on_removals' do
@@ -251,6 +277,32 @@ module Guard
 
           File.should be_file('t1/foo')
           File.should be_file('t2/foo')
+        end
+      end
+
+      context 'when :verbose is false (or nil)' do
+        it 'does not log delete operation' do
+          file('source/foo')
+          file('target/foo')
+          guard = Copy.new([], :from => 'source', :to => 'target', :delete => true)
+          guard.start
+          UI.should_not_receive(:info)
+
+          guard.run_on_removals(['source/foo'])
+        end
+      end
+
+      context 'when :verbose is true' do
+        it 'logs delete operation' do
+          file('source/foo')
+          file('t1/foo')
+          file('t2/foo')
+          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true, :verbose => true)
+          guard.start
+          UI.should_receive(:info).with('deleting t1/foo')
+          UI.should_receive(:info).with('deleting t2/foo')
+
+          guard.run_on_removals(['source/foo'])
         end
       end
 
