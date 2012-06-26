@@ -128,13 +128,11 @@ module Guard
           end
 
           it 'throws :task_has_failed when :to contains a file' do
-            pending do
-              dir('source')
-              file('target')
-              guard = Copy.new([], :from => 'source', :to => 'target')
-              UI.should_receive(:error).with('Guard::Copy - :to option contains a file and must be all directories')
-              expect { guard.start }.to throw_symbol(:task_has_failed)
-            end
+            dir('source')
+            file('target')
+            guard = Copy.new([], :from => 'source', :to => 'target')
+            UI.should_receive(:error).with('Guard::Copy - :to option contains a file and must be all directories')
+            expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
         end

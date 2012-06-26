@@ -29,24 +29,9 @@ module Guard
       validate_from_is_directory
       validate_presence_of(:to)
       validate_to_does_not_include_from
-      @targets.each do |target|
-        unless target.resolve
-          UI.warning("Guard::Copy - '#{target.pattern}' does not match a valid directory")
-        end
-      end
-      if target_paths.any?
-        UI.info("Guard::Copy will copy files from:")
-        UI.info("  #{options[:from]}")
-        UI.info("to:")
-        target_paths.each { |target_path| UI.info("  #{target_path}") }
-
-        if options[:delete]
-          UI.info("Guard::Copy will delete files removed from:")
-          UI.info("  #{options[:from]}")
-          UI.info("from:")
-          target_paths.each { |target_path| UI.info("  #{target_path}") }
-        end
-      end
+      resolve_targets
+      validate_no_targets_are_files
+      display_target_paths
     end
 
     # Called when just `enter` is pressed
@@ -154,6 +139,39 @@ module Guard
         UI.error('Guard::Copy - cannot delete, file does not exist:')
         UI.error("  #{to_file}")
         throw :task_has_failed
+      end
+    end
+
+    def resolve_targets
+      @targets.each do |target|
+        unless target.resolve
+          UI.warning("Guard::Copy - '#{target.pattern}' does not match a valid directory")
+        end
+      end
+    end
+
+    def validate_no_targets_are_files
+      target_paths.each do |path|
+        if File.file?(path)
+          UI.error('Guard::Copy - :to option contains a file and must be all directories')
+          throw :task_has_failed
+        end
+      end
+    end
+
+    def display_target_paths
+      if target_paths.any?
+        UI.info("Guard::Copy will copy files from:")
+        UI.info("  #{options[:from]}")
+        UI.info("to:")
+        target_paths.each { |target_path| UI.info("  #{target_path}") }
+
+        if options[:delete]
+          UI.info("Guard::Copy will delete files removed from:")
+          UI.info("  #{options[:from]}")
+          UI.info("from:")
+          target_paths.each { |target_path| UI.info("  #{target_path}") }
+        end
       end
     end
 
