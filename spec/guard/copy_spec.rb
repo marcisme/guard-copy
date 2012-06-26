@@ -156,8 +156,8 @@ module Guard
         UI.should_receive(:info).with("Guard::Copy will copy files from:")
         UI.should_receive(:info).with("  source")
         UI.should_receive(:info).with("to:")
-        UI.should_receive(:info).with("  t1")
-        UI.should_receive(:info).with("  t2")
+        UI.should_receive(:info).with("  #{ffs('t1')}")
+        UI.should_receive(:info).with("  #{ffs('t2')}")
         guard.start
       end
 
@@ -170,8 +170,8 @@ module Guard
           UI.should_receive(:info).with("Guard::Copy will delete files removed from:")
           UI.should_receive(:info).with("  source")
           UI.should_receive(:info).with("from:")
-          UI.should_receive(:info).with("  t1")
-          UI.should_receive(:info).with("  t2")
+          UI.should_receive(:info).with("  #{ffs('t1')}")
+          UI.should_receive(:info).with("  #{ffs('t2')}")
           UI.should_receive(:info).any_number_of_times # don't worry about unrelated info
           guard.start
         end
@@ -194,7 +194,7 @@ module Guard
         dir('target')
         guard = Copy.new([], :from => 'source', :to => 'target')
         UI.should_receive(:error).with('Guard::Copy - cannot copy, directory path does not exist:')
-        UI.should_receive(:error).with('  target/some/path/to/some')
+        UI.should_receive(:error).with("  #{ffs('target/some/path/to/some')}")
         guard.start
         expect {
           guard.run_on_changes(['source/some/path/to/some/file'])
@@ -233,8 +233,8 @@ module Guard
           dir('t2')
           guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :verbose => true)
           guard.start
-          UI.should_receive(:info).with('copying to t1/foo')
-          UI.should_receive(:info).with('copying to t2/foo')
+          UI.should_receive(:info).with("copying to #{ffs('t1/foo')}")
+          UI.should_receive(:info).with("copying to #{ffs('t2/foo')}")
 
           guard.run_on_changes(['source/foo'])
         end
@@ -260,7 +260,7 @@ module Guard
           dir('target')
           guard = Copy.new([], :from => 'source', :to => 'target', :delete => true)
           UI.should_receive(:error).with("Guard::Copy - cannot delete, file does not exist:")
-          UI.should_receive(:error).with("  target/foo")
+          UI.should_receive(:error).with("  #{ffs('target/foo')}")
           guard.start
           expect { guard.run_on_removals(['source/foo']) }.to throw_symbol(:task_has_failed)
         end
@@ -315,8 +315,8 @@ module Guard
           file('t2/foo')
           guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true, :verbose => true)
           guard.start
-          UI.should_receive(:info).with('deleting t1/foo')
-          UI.should_receive(:info).with('deleting t2/foo')
+          UI.should_receive(:info).with("deleting #{ffs('t1/foo')}")
+          UI.should_receive(:info).with("deleting #{ffs('t2/foo')}")
 
           guard.run_on_removals(['source/foo'])
         end

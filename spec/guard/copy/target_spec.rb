@@ -81,7 +81,7 @@ module Guard
           dir('target')
           target = Copy::Target.new('target')
           target.resolve
-          target.paths.should == ['target']
+          target.paths.should == [ffs('target')]
         end
       end
 
@@ -91,7 +91,7 @@ module Guard
           dir('t2')
           target = Copy::Target.new('t*')
           target.resolve
-          target.paths.should == ['t1', 't2']
+          target.paths.should == [ffs('t1'), ffs('t2')]
         end
       end
 
@@ -101,7 +101,7 @@ module Guard
           dir('target_new', 2012)
           target = Copy::Target.new('t*', :glob => :newest)
           target.resolve
-          target.paths.should == ['target_new']
+          target.paths.should == [ffs('target_new')]
         end
       end
 

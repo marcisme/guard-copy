@@ -10,13 +10,14 @@ FakeFS::FakeDir.class_eval do
   # we need to be able to set mtime for newest directory tests
   attr_accessor :mtime
 
-  # fakefs returns full paths, which is inconsistent with real globs
-  def to_s
-    name
-  end
 end
 
 module FileHelpers
+
+  # convert the path to the fakefs path
+  def ffs(path)
+    File.join(File.expand_path(File.join('..', '..'), __FILE__), path)
+  end
 
   def file(f)
     dir(File.dirname(f))
