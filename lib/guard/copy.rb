@@ -161,17 +161,10 @@ module Guard
 
     def display_target_paths
       if target_paths.any?
-        UI.info("Guard::Copy will copy files from:")
+        UI.info("Guard::Copy - files in:")
         UI.info("  #{options[:from]}")
-        UI.info("to:")
+        UI.info("will be copied to#{ ' and removed from' if options[:delete] }:")
         target_paths.each { |target_path| UI.info("  #{target_path}") }
-
-        if options[:delete]
-          UI.info("Guard::Copy will delete files removed from:")
-          UI.info("  #{options[:from]}")
-          UI.info("from:")
-          target_paths.each { |target_path| UI.info("  #{target_path}") }
-        end
       end
     end
 
