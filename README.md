@@ -1,4 +1,4 @@
-# Guard::Copy [![Build Status](https://secure.travis-ci.org/marcisme/guard-copy.png?branch=master)](http://travis-ci.org/marcisme/guard-copy)
+# Guard::Copy [![Build Status](https://secure.travis-ci.org/marcisme/guard-copy.png?branch=master)](http://travis-ci.org/marcisme/guard-copy) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/marcisme/guard-copy)
 
 Copy guard copies files to one or more locations whenever files are
 created or modified.
