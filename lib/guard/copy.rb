@@ -28,6 +28,7 @@ module Guard
       validate_presence_of(:from)
       validate_from_is_directory
       validate_presence_of(:to)
+      validate_to_patterns_are_not_absolute
       validate_to_does_not_include_from
       resolve_targets
       validate_no_targets_are_files
@@ -154,6 +155,17 @@ module Guard
       target_paths.each do |path|
         if File.file?(path)
           UI.error('Guard::Copy - :to option contains a file and must be all directories')
+          throw :task_has_failed
+        end
+      end
+    end
+
+    def validate_to_patterns_are_not_absolute
+      targets.each do |target|
+        if target.absolute? && !options[:absolute]
+          UI.error('Guard::Copy - :to contains an absolute path:')
+          UI.error("  #{target.pattern}")
+          UI.error('Set the :absolute option to allow absolute target paths')
           throw :task_has_failed
         end
       end

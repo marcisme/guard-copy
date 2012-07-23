@@ -32,6 +32,11 @@ module Guard
         @paths.any?
       end
 
+      # @return [Boolean] true if the pattern is an absolute path
+      def absolute?
+        @pattern.start_with?('/')
+      end
+
     end
   end
 end

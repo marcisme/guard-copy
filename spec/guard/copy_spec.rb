@@ -135,6 +135,15 @@ module Guard
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
+          it 'throws :task_has_failed when :to is absolute without option' do
+            dir('source')
+            guard = Copy.new([], :from => 'source', :to => '/absolute/path')
+            UI.should_receive(:error).with('Guard::Copy - :to contains an absolute path:')
+            UI.should_receive(:error).with('  /absolute/path')
+            UI.should_receive(:error).with('Set the :absolute option to allow absolute target paths')
+            expect { guard.start }.to throw_symbol(:task_has_failed)
+          end
+
         end
 
       end
@@ -211,6 +220,21 @@ module Guard
         File.should be_file('t2/foo')
       end
 
+      context 'when :absolute is true' do
+        it 'copies files to absolute paths' do
+          file('source/foo')
+          dir('/t1')
+          dir('/t2')
+          guard = Copy.new([], :from => 'source', :to => ['/t1', '/t2'], :absolute => true)
+          guard.start
+
+          guard.run_on_changes(['source/foo'])
+
+          File.should be_file('/t1/foo')
+          File.should be_file('/t2/foo')
+        end
+      end
+
       context 'when :verbose is false (or nil)' do
         it 'does not log copy operation' do
           file('source/foo')
@@ -275,6 +299,21 @@ module Guard
 
           File.should_not be_file('t1/foo')
           File.should_not be_file('t2/foo')
+        end
+      end
+
+      context 'when :delete and :absolute are true' do
+        it 'deletes the  absolute target files' do
+          file('source/foo')
+          file('/t1/foo')
+          file('/t2/foo')
+          guard = Copy.new([], :from => 'source', :to => ['/t1', '/t2'], :delete => true, :absolute => true)
+          guard.start
+
+          guard.run_on_removals(['source/foo'])
+
+          File.should_not be_file('/t1/foo')
+          File.should_not be_file('/t2/foo')
         end
       end
 

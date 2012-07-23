@@ -58,12 +58,13 @@ the directory specified by the `:from` option to that specified by the
 
 ``` ruby
 :from    => 'source'   # directory to copy files from
-:to      => 'target'   # directory or glob to copy files to; can be an array
+:to      => 'target'   # directory or glob to copy files to; string or array
 :glob    => :newest    # how to handle globs; default: :all
                        #   :newest - copy to only the newest directory
                        #   :all    - copy to all directories
-:delete  => true       # delete files from target directories
-:verbose => true       # log all operations as info messages
+:delete  => true       # delete files from target directories; default: false
+:verbose => true       # log all operations as info messages; default: false
+:absolute => true      # allow absolute paths for :to; default: false
 ```
 
 ## Watchers

@@ -107,5 +107,21 @@ module Guard
 
     end
 
+    describe '#absolute?' do
+
+      context 'when absolute' do
+        it 'returns true' do
+          Copy::Target.new('/absolute/path').should be_absolute
+        end
+      end
+
+      context 'when not absolute' do
+        it 'returns false' do
+          Copy::Target.new('relative/path').should_not be_absolute
+        end
+      end
+
+    end
+
   end
 end
