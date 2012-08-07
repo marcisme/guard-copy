@@ -196,14 +196,14 @@ module Guard
       end
 
       it 'creates directories in target when full target path does not exist' do
-         file('source/some/path/to/some/file')
-         dir('target')
-         guard = Copy.new([], :from => 'source', :to => 'target')
-         guard.start
-         guard.run_on_changes(['source/some/path/to/some/file'])
+        file('source/some/path/to/some/file')
+        dir('target')
+        guard = Copy.new([], :from => 'source', :to => 'target')
+        guard.start
+        guard.run_on_changes(['source/some/path/to/some/file'])
 
-         File.should be_directory('source/some/path/to/some')
-         File.should be_file('source/some/path/to/some/file')
+        File.should be_directory('target/some/path/to/some')
+        File.should be_file('target/some/path/to/some/file')
       end
 
       it 'copies files to target directories' do

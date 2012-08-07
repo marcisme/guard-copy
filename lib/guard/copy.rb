@@ -49,8 +49,8 @@ module Guard
       with_all_target_paths(paths) do |from_path, to_path|
         to_dir = File.dirname(to_path)
         unless File.directory?(to_dir)
-           UI.info("creating directory #{to_dir}") if options[:verbose]
-           FileUtils.mkpath(to_dir)
+          UI.info("creating directory #{to_dir}") if options[:verbose]
+          FileUtils.mkpath(to_dir)
         end
         validate_to_path(to_path)
         UI.info("copying to #{to_path}") if options[:verbose]
