@@ -62,6 +62,8 @@ the directory specified by the `:from` option to that specified by the
 :glob    => :newest    # how to handle globs; default: :all
                        #   :newest - copy to only the newest directory
                        #   :all    - copy to all directories
+:create_target => true # create directories in target when full target path
+                       # does not exist; default: false
 :delete  => true       # delete files from target directories; default: false
 :verbose => true       # log all operations as info messages; default: false
 :absolute => true      # allow absolute paths for :to; default: false

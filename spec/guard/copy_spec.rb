@@ -207,6 +207,17 @@ module Guard
         }.to throw_symbol(:task_has_failed)
       end
 
+      it 'creates directories in target when full target path does not exist and :create_target option is enabled' do
+        file('source/some/path/to/some/file')
+        dir('target')
+        guard = Copy.new([], :create_target => true, :from => 'source', :to => 'target')
+        guard.start
+        guard.run_on_changes(['source/some/path/to/some/file'])
+
+        File.should be_directory('target/some/path/to/some')
+        File.should be_file('target/some/path/to/some/file')
+      end
+
       it 'copies files to target directories' do
         file('source/foo')
         dir('t1')
