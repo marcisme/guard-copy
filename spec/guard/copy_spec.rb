@@ -195,16 +195,15 @@ module Guard
         expect { guard.run_on_changes([]) }.to throw_symbol(:task_has_failed)
       end
 
-      it 'throws :task_has_failed when full target path does not exist' do
-        dir('source/some/path/to/some')
-        dir('target')
-        guard = Copy.new([], :from => 'source', :to => 'target')
-        UI.should_receive(:error).with('Guard::Copy - cannot copy, directory path does not exist:')
-        UI.should_receive(:error).with("  #{ffs('target/some/path/to/some')}")
-        guard.start
-        expect {
-          guard.run_on_changes(['source/some/path/to/some/file'])
-        }.to throw_symbol(:task_has_failed)
+      it 'creates directories in target when full target path does not exist' do
+         file('source/some/path/to/some/file')
+         dir('target')
+         guard = Copy.new([], :from => 'source', :to => 'target')
+         guard.start
+         guard.run_on_changes(['source/some/path/to/some/file'])
+
+         File.should be_directory('source/some/path/to/some')
+         File.should be_file('source/some/path/to/some/file')
       end
 
       it 'copies files to target directories' do
