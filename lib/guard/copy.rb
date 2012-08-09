@@ -47,6 +47,11 @@ module Guard
     def run_on_changes(paths)
       validate_at_least_one_target('copy')
       with_all_target_paths(paths) do |from_path, to_path|
+        to_dir = File.dirname(to_path)
+        if !File.directory?(to_dir) && options[:create_target]
+          UI.info("creating directory #{to_dir}") if options[:verbose]
+          FileUtils.mkpath(to_dir)
+        end
         validate_to_path(to_path)
         UI.info("copying to #{to_path}") if options[:verbose]
         FileUtils.cp(from_path, to_path)
