@@ -76,7 +76,7 @@ Feature: Copy files
     And a directory named "target"
     And I have run guard with this Guardfile:
       """
-      guard :copy, :from => 'source', :to => 'target', :create_target => true
+      guard :copy, :from => 'source', :to => 'target', :mkpath => true
       """
     When I create a file named "source/nes/ted/dir/ectory/foo"
     Then "source/nes/ted/dir/ectory/foo" should be copied to "target/nes/ted/dir/ectory/foo"
