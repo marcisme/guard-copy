@@ -70,3 +70,14 @@ Feature: Copy files
     When I create a file named "source/foo"
     Then "source/foo" should be copied to "target_newer/foo"
     And "source/foo" should not be copied to "target_older/foo"
+
+  Scenario: Create target directory on demand
+    Given a directory named "source/nes/ted/dir/ectory"
+    And a directory named "target"
+    And I have run guard with this Guardfile:
+      """
+      guard :copy, :from => 'source', :to => 'target', :create_target => true
+      """
+    When I create a file named "source/nes/ted/dir/ectory/foo"
+    Then "source/nes/ted/dir/ectory/foo" should be copied to "target/nes/ted/dir/ectory/foo"
+
