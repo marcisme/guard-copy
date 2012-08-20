@@ -5,7 +5,9 @@ require 'fileutils'
 module Guard
   class Copy < Guard
 
-    autoload :Target, 'guard/copy/target'
+    autoload :Target,          'guard/copy/target'
+    autoload :CopyOperation,   'guard/copy/copy_operation'
+    autoload :DeleteOperation, 'guard/copy/delete_operation'
 
     attr_reader :targets
 
@@ -20,6 +22,8 @@ module Guard
         watchers.each { |w| normalize_watcher(w, options[:from]) }
       end
       @targets = Array(options[:to]).map { |to| Target.new(to, options) }
+      @changes_operation = CopyOperation.new(options)
+      @removals_operation = DeleteOperation.new(options)
     end
 
     # Call once when Guard starts. Please override initialize method to init stuff.
@@ -47,14 +51,8 @@ module Guard
     def run_on_changes(paths)
       validate_at_least_one_target('copy')
       with_all_target_paths(paths) do |from_path, to_path|
-        to_dir = File.dirname(to_path)
-        if !File.directory?(to_dir) && options[:mkpath]
-          UI.info("creating directory #{to_dir}") if options[:verbose]
-          FileUtils.mkpath(to_dir)
-        end
-        validate_to_path(to_path)
-        UI.info("copying to #{to_path}") if options[:verbose]
-        FileUtils.cp(from_path, to_path)
+        create_target_directory_if_needed(to_path)
+        @changes_operation.with_target_path(from_path, to_path)
       end
     end
 
@@ -65,9 +63,7 @@ module Guard
       return unless options[:delete]
       validate_at_least_one_target('delete')
       with_all_target_paths(paths) do |_, to_path|
-        validate_to_file(to_path)
-        UI.info("deleting #{to_path}") if options[:verbose]
-        FileUtils.rm(to_path)
+        @removals_operation.with_target_path(_, to_path)
       end
     end
 
@@ -131,20 +127,11 @@ module Guard
       end
     end
 
-    def validate_to_path(to_path)
+    def create_target_directory_if_needed(to_path)
       to_dir = File.dirname(to_path)
-      unless File.directory?(to_dir)
-        UI.error('Guard::Copy - cannot copy, directory path does not exist:')
-        UI.error("  #{to_dir}")
-        throw :task_has_failed
-      end
-    end
-
-    def validate_to_file(to_file)
-      unless File.file?(to_file)
-        UI.error('Guard::Copy - cannot delete, file does not exist:')
-        UI.error("  #{to_file}")
-        throw :task_has_failed
+      if !File.directory?(to_dir) && options[:mkpath]
+        UI.info("creating directory #{to_dir}") if options[:verbose]
+        FileUtils.mkpath(to_dir)
       end
     end
 
