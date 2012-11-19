@@ -33,10 +33,6 @@ Then /^guard should report that "([^"]*)"$/ do |output|
   end
 end
 
-Then /^the file "([^"]*)" should contain:$/ do |file, partial_content|
-  check_file_content(file, partial_content, true)
-end
-
 Given /^a directory named "([^"]*)" created in (\d+)$/ do |dir, year|
   create_dir(dir)
   in_current_dir do

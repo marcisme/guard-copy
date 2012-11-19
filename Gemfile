@@ -6,7 +6,7 @@ gemspec
 group :development do
   gem 'guard-rspec', '>= 1.0'
   gem 'guard-cucumber', '>= 1.0'
-  gem 'aruba', '~> 0.4'
+  gem 'aruba', '~> 0.5'
   gem 'debugger'
 end
 
