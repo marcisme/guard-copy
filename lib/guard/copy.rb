@@ -150,6 +150,10 @@ module Guard
 
     def resolve_targets
       @targets.each do |target|
+        if !File.directory?(target.pattern) && options[:mkpath]
+          UI.info("creating directory #{target.pattern}") if options[:verbose]
+          FileUtils.mkpath(target.pattern)
+        end
         unless target.resolve
           UI.warning("Guard::Copy - '#{target.pattern}' does not match a valid directory")
         end
