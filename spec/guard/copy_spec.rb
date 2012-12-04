@@ -183,6 +183,37 @@ module Guard
         end
       end
 
+      it 'executes #run_all if :run_at_start option is true' do
+        dir('source')
+        dir('target')
+        guard = Copy.new([], :from => 'source', :to => 'target', :run_at_start => true)
+        guard.should_receive(:run_all)
+        guard.start
+      end
+
+    end
+
+    describe '#run_all' do
+
+      it 'should copy all files matching watcher patterns' do
+        dir('source')
+        dir('source/css')
+        file('source/foo.rb')
+        file('source/foo.js')
+        file('source/css/foo.css')
+        dir('target')
+        dir('target/css')
+        guard = Copy.new([
+          Watcher.new(%r{^.+\.js$}),
+          Watcher.new(%r{^.+\.css$})
+        ], :from => 'source', :to => 'target')
+        guard.start
+        guard.run_all
+        File.should be_file('target/foo.js')
+        File.should be_file('target/css/foo.css')
+        File.should_not be_file('target/foo.rb')
+      end
+
     end
 
     describe '#run_on_changes' do
