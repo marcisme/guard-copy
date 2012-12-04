@@ -127,6 +127,15 @@ module Guard
             guard.start
           end
 
+          it 'create full path for missing :to directory if :mkpath option is enabled' do
+            dir('source')
+            guard = Copy.new([], :from => 'source', :to => 'target/my/long/path', :mkpath => true, :verbose => true)
+            UI.should_receive(:info).with("creating directory target/my/long/path")
+            UI.should_not_receive(:warning).with("Guard::Copy - 'target/my/long/path' does not match a valid directory")
+            guard.start
+            File.should be_directory('target/my/long/path')
+          end
+
           it 'throws :task_has_failed when :to contains a file' do
             dir('source')
             file('target')
