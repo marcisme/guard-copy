@@ -37,6 +37,11 @@ module Guard
         @pattern.start_with?('/')
       end
 
+      # @return [String] path pattern
+      def pattern
+        @pattern
+      end
+
     end
   end
 end
