@@ -150,7 +150,7 @@ module Guard
 
     def resolve_targets
       @targets.each do |target|
-        if !File.directory?(target.pattern) && options[:mkpath]
+        if !options[:glob] && options[:mkpath] && !File.directory?(target.pattern)
           UI.info("creating directory #{target.pattern}") if options[:verbose]
           FileUtils.mkpath(target.pattern)
         end
