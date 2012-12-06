@@ -168,7 +168,7 @@ module Guard
         guard.start
       end
 
-      context 'when delete is true' do
+      context 'when :delete is true' do
         it 'displays that delete is enabled' do
           dir('source')
           dir('t1')
@@ -183,35 +183,48 @@ module Guard
         end
       end
 
-      it 'executes #run_all if :run_at_start option is true' do
-        dir('source')
-        dir('target')
-        guard = Copy.new([], :from => 'source', :to => 'target', :run_at_start => true)
-        guard.should_receive(:run_all)
-        guard.start
+      context 'when :run_at_start is true' do
+        it 'executes #run_all' do
+          dir('source')
+          guard = Copy.new([], :from => 'source', :to => 'target', :run_at_start => true)
+          guard.should_receive(:run_all)
+          guard.start
+        end
       end
 
     end
 
     describe '#run_all' do
 
-      it 'should copy all files matching watcher patterns' do
-        dir('source')
-        dir('source/css')
-        file('source/foo.rb')
-        file('source/foo.js')
-        file('source/css/foo.css')
-        dir('target')
-        dir('target/css')
-        guard = Copy.new([
-          Watcher.new(%r{^.+\.js$}),
-          Watcher.new(%r{^.+\.css$})
-        ], :from => 'source', :to => 'target')
-        guard.start
-        guard.run_all
-        File.should be_file('target/foo.js')
-        File.should be_file('target/css/foo.css')
-        File.should_not be_file('target/foo.rb')
+      context 'files both matching and not matching watcher patterns' do
+
+        before(:each) do
+          file('source/foo.rb')
+          file('source/foo.js')
+          file('source/css/foo.css')
+          dir('target/css')
+        end
+
+        let(:guard) do
+          Copy.new([
+            Watcher.new(%r{^.+\.js$}),
+            Watcher.new(%r{^.+\.css$})
+          ], :from => 'source', :to => 'target')
+        end
+
+        it 'copies files matching watcher patterns' do
+          guard.start
+          guard.run_all
+          File.should be_file('target/foo.js')
+          File.should be_file('target/css/foo.css')
+        end
+
+        it 'does not copy files not matching watcher patterns' do
+          guard.start
+          guard.run_all
+          File.should_not be_file('target/foo.rb')
+        end
+
       end
 
     end
