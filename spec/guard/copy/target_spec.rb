@@ -18,7 +18,7 @@ module Guard
         end
 
         it 'sets default :glob option to :all' do
-          target.options[:glob].should == :all
+          target.glob.should == :all
         end
 
       end
@@ -37,7 +37,7 @@ module Guard
 
     end
 
-    describe '#resolve' do
+    describe '#resolve!' do
 
       context 'with valid pattern' do
 
@@ -46,13 +46,9 @@ module Guard
           target = Copy::Target.new('target')
         end
 
-        it 'returns true' do
-          target.resolve.should be_true
-        end
-
         it 'resets paths' do
-          target.resolve
-          target.resolve
+          target.resolve!
+          target.resolve!
           target.paths.size.should == 1
         end
 
@@ -62,12 +58,28 @@ module Guard
 
         let(:target) { Copy::Target.new('non_existent_target') }
 
-        it 'returns false' do
-          target.resolve.should be_false
+        it 'does not set any paths' do
+          target.resolve!
+          target.paths.size.should == 0
         end
 
-        it 'does not set any paths' do
-          target.paths.size.should == 0
+        it 'warns' do
+          UI.should_receive(:warning).with("Guard::Copy - 'non_existent_target' does not match a valid directory")
+          target.resolve!
+        end
+
+      end
+
+      context 'with invalid pattern and :mkpath option' do
+
+        let(:target) do
+          Copy::Target.new('invalid_path', :mkpath => true)
+        end
+
+        it 'resets paths' do
+          target.resolve!
+          target.resolve!
+          target.paths.size.should == 1
         end
 
       end
@@ -80,7 +92,7 @@ module Guard
         it 'returns single path' do
           dir('target')
           target = Copy::Target.new('target')
-          target.resolve
+          target.resolve!
           target.paths.should == ['target']
         end
       end
@@ -90,7 +102,7 @@ module Guard
           dir('t1')
           dir('t2')
           target = Copy::Target.new('t*')
-          target.resolve
+          target.resolve!
           target.paths.should == ['t1', 't2']
         end
       end
@@ -100,8 +112,17 @@ module Guard
           dir('target_old', 1978)
           dir('target_new', 2012)
           target = Copy::Target.new('t*', :glob => :newest)
-          target.resolve
+          target.resolve!
           target.paths.should == ['target_new']
+        end
+      end
+
+      context 'with invalid pattern and :mkpath option' do
+        it 'returns invalid path' do
+          dir('invalid_path')
+          target = Copy::Target.new('invalid_path', :mkpath => true)
+          target.resolve!
+          target.paths.should == ['invalid_path']
         end
       end
 

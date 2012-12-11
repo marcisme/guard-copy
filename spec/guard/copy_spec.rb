@@ -119,14 +119,6 @@ module Guard
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
-          it 'warns when a :to directory does not exist' do
-            dir('source')
-            dir('target')
-            guard = Copy.new([], :from => 'source', :to => ['target', 'v*'])
-            UI.should_receive(:warning).with("Guard::Copy - 'v*' does not match a valid directory")
-            guard.start
-          end
-
           it 'throws :task_has_failed when :to contains a file' do
             dir('source')
             file('target')
@@ -151,7 +143,7 @@ module Guard
       it 'resolves targets' do
         dir('source')
         guard = Copy.new([], :from => 'source', :to => ['t1', 't2', 't3'])
-        guard.targets.each { |t| t.should_receive(:resolve) }
+        guard.targets.each { |t| t.should_receive(:resolve!) }
         guard.start
       end
 

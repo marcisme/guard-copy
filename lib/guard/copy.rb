@@ -30,7 +30,7 @@ module Guard
       validate_presence_of(:to)
       validate_to_patterns_are_not_absolute
       validate_to_does_not_include_from
-      resolve_targets
+      resolve_targets!
       validate_no_targets_are_files
       display_target_paths
 
@@ -151,12 +151,8 @@ module Guard
       end
     end
 
-    def resolve_targets
-      @targets.each do |target|
-        unless target.resolve
-          UI.warning("Guard::Copy - '#{target.pattern}' does not match a valid directory")
-        end
-      end
+    def resolve_targets!
+      @targets.each(&:resolve!)
     end
 
     def validate_no_targets_are_files

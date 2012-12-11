@@ -73,7 +73,6 @@ Feature: Copy files
 
   Scenario: Create target directory on demand
     Given a directory named "source/nes/ted/dir/ectory"
-    And a directory named "target"
     And I have run guard with this Guardfile:
       """
       guard :copy, :from => 'source', :to => 'target', :mkpath => true
