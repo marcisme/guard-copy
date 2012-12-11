@@ -152,7 +152,7 @@ module Guard
     end
 
     def resolve_targets!
-      @targets.each(&:resolve!)
+      @targets.each { |target| target.resolve! }
     end
 
     def validate_no_targets_are_files
