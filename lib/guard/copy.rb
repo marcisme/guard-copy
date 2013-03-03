@@ -20,11 +20,6 @@ module Guard
         watchers.each { |w| normalize_watcher(w, options[:from]) }
       end
       @targets = Array(options[:to]).map { |to| Target.new(to, options) }
-    end
-
-    # Call once when Guard starts. Please override initialize method to init stuff.
-    # @raise [:task_has_failed] when start has failed
-    def start
       validate_presence_of(:from)
       validate_from_is_directory
       validate_presence_of(:to)
@@ -33,7 +28,11 @@ module Guard
       resolve_targets!
       validate_no_targets_are_files
       display_target_paths
+    end
 
+    # Call once when Guard starts. Please override initialize method to init stuff.
+    # @raise [:task_has_failed] when start has failed
+    def start
       run_all if options[:run_at_start]
     end
 
@@ -41,7 +40,7 @@ module Guard
     # This method should be principally used for long action like running all specs/tests/...
     # @raise [:task_has_failed] when run_all has failed
     def run_all
-      run_on_changes(Watcher.match_files(self, Dir.glob("**/*.*")))
+      run_on_changes(Watcher.match_files(self, Dir.glob('**{,/*/**}/*.*')))
     end
 
     # Called on file(s) modifications that the Guard watches.
