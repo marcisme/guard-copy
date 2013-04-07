@@ -112,10 +112,10 @@ module Guard
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
-          it 'throws :task_has_failed when :to includes :from' do
+          it 'throws :task_has_failed when :to starts with :from' do
             dir('source')
             guard = Copy.new([], :from => 'source', :to => 'source')
-            UI.should_receive(:error).with('Guard::Copy - :to must not include :from')
+            UI.should_receive(:error).with('Guard::Copy - :to must not start with :from')
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 

@@ -29,7 +29,7 @@ module Guard
       validate_from_is_directory
       validate_presence_of(:to)
       validate_to_patterns_are_not_absolute
-      validate_to_does_not_include_from
+      validate_to_does_not_start_with_from
       resolve_targets!
       validate_no_targets_are_files
       display_target_paths
@@ -120,9 +120,9 @@ module Guard
       end
     end
 
-    def validate_to_does_not_include_from
-      if options[:to].include?(options[:from])
-        UI.error('Guard::Copy - :to must not include :from')
+    def validate_to_does_not_start_with_from
+      if Array(options[:to]).any? { |to| to.start_with?(options[:from]) }
+        UI.error('Guard::Copy - :to must not start with :from')
         throw :task_has_failed
       end
     end
