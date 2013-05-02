@@ -57,7 +57,11 @@ module Guard
         end
         validate_to_path(to_path)
         UI.info("copying to #{to_path}") if options[:verbose]
-        FileUtils.cp(from_path, to_path)
+        if File.directory?(from_path)
+          UI.warning("#{from_path} is a directory but is being treated as a file. Skipping.")
+        else
+          FileUtils.cp(from_path, to_path)
+        end
       end
     end
 
