@@ -267,6 +267,18 @@ module Guard
         File.should be_file('t2/foo')
       end
 
+      it 'warns when a directory containing a "." is changed' do
+        dir('source/dotted.name')
+        dir('target/dotted.name')
+        guard = Copy.new([], :from => 'source', :to => 'target')
+        guard.start
+
+        UI.should_receive(:warning).with('matched path is a directory; skipping')
+        UI.should_receive(:warning).with('  source/dotted.name')
+
+        guard.run_on_changes(['source/dotted.name'])
+      end
+
       context 'when :absolute is true' do
         it 'copies files to absolute paths' do
           file('source/foo')

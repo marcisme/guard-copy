@@ -57,7 +57,7 @@ module Guard
         end
         validate_to_path(to_path)
         UI.info("copying to #{to_path}") if options[:verbose]
-        FileUtils.cp(from_path, to_path)
+        copy(from_path, to_path)
       end
     end
 
@@ -181,6 +181,15 @@ module Guard
         UI.info("  #{options[:from]}")
         UI.info("will be copied to#{ ' and removed from' if options[:delete] }:")
         target_paths.each { |target_path| UI.info("  #{target_path}") }
+      end
+    end
+
+    def copy(from_path, to_path)
+      begin
+        FileUtils.cp(from_path, to_path)
+      rescue Errno::EISDIR
+        UI.warning("matched path is a directory; skipping")
+        UI.warning("  #{ from_path }")
       end
     end
 
