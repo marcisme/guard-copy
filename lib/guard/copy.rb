@@ -5,6 +5,8 @@ require 'fileutils'
 module Guard
   class Copy < Guard
 
+    COPY_FROM_PROJECT_ROOT_MAGIC_STRING = '.'
+
     autoload :Target, 'guard/copy/target'
 
     attr_reader :targets
@@ -83,9 +85,17 @@ module Guard
     def with_all_target_paths(paths)
       paths.each do |from_path|
         target_paths.each do |target_path|
-          to_path = from_path.sub(@options[:from], target_path)
+          to_path = substitute_target_path(from_path, target_path)
           yield(from_path, to_path)
         end
+      end
+    end
+
+    def substitute_target_path(from_path, target_path)
+      if @options[:from] == COPY_FROM_PROJECT_ROOT_MAGIC_STRING
+        target_path
+      else
+        from_path.sub(@options[:from], target_path)
       end
     end
 

@@ -57,7 +57,7 @@ the directory specified by the `:from` option to that specified by the
 ### List of available options:
 
 ``` ruby
-:from         => 'source' # directory to copy files from
+:from         => 'source' # directory to copy files from; use '.' for root directory
 :to           => 'target' # directory or glob to copy files to; string or array
 :glob         => :newest  # how to handle globs; default: :all
                           #   :newest - copy to only the newest directory
