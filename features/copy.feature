@@ -80,12 +80,3 @@ Feature: Copy files
     When I create a file named "source/nes/ted/dir/ectory/foo"
     Then "source/nes/ted/dir/ectory/foo" should be copied to "target/nes/ted/dir/ectory/foo"
 
-  Scenario: Copy a file from the root directory
-    Given a directory named "target"
-    And I have run guard with this Guardfile:
-      """
-      guard :copy, :from => '.', :to => 'target'
-      """
-    When I create a file named "foo"
-    Then "foo" should be copied to "target/foo"
-

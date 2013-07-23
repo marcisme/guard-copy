@@ -267,19 +267,6 @@ module Guard
         File.should be_file('t2/foo')
       end
 
-      it 'copies files from the root directory to target directories' do
-        file('foo')
-        dir('t1')
-        dir('t2')
-        guard = Copy.new([], :from => '.', :to => ['t1', 't2'])
-        guard.start
-
-        guard.run_on_changes(['foo'])
-
-        File.should be_file('t1/foo')
-        File.should be_file('t2/foo')
-      end
-
       it 'warns when a directory containing a "." is changed' do
         dir('source/dotted.name')
         dir('target/dotted.name')

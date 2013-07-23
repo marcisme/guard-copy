@@ -5,51 +5,6 @@ require 'fileutils'
 module Guard
   class Copy < Guard
 
-    # TODO: starting to move some of the option related behavior into separate classes.
-    #       we probably need to separate validation that pertains to a valid configuration
-    #       and validation that is about the file system state at runtime
-    # TODO: think more about how to manage inter-option dependencies
-    class FromOption
-
-      COPY_FROM_PROJECT_ROOT_MAGIC_STRING = '.'
-
-      attr_reader :path
-
-      def initialize(path)
-        @path = path
-      end
-
-      def validate_is_directory!
-        unless File.directory?(path)
-          if File.file?(path)
-            UI.error("Guard::Copy - '#{path}' is a file and must be a directory")
-            throw :task_has_failed
-          else
-            UI.error("Guard::Copy - :from option does not contain a valid directory")
-            throw :task_has_failed
-          end
-        end
-      end
-
-      def substitute_target_path(from_path, target_path)
-        if path == COPY_FROM_PROJECT_ROOT_MAGIC_STRING
-          target_path
-        else
-          from_path.sub(path, target_path)
-        end
-      end
-
-      def default_watcher
-        # sniff sniff
-        if path == COPY_FROM_PROJECT_ROOT_MAGIC_STRING
-          ::Guard::Watcher.new(%r{^.*$})
-        else
-          ::Guard::Watcher.new(%r{^#{path}/.*$})
-        end
-      end
-
-    end
-
     autoload :Target, 'guard/copy/target'
 
     attr_reader :targets
@@ -59,11 +14,10 @@ module Guard
     # @param [Hash] options the custom Guard options
     def initialize(watchers = [], options = {})
       super
-      @from = FromOption.new(options[:from])
       if watchers.empty?
-        watchers << from.default_watcher
+        watchers << ::Guard::Watcher.new(%r{^#{options[:from]}/.*$})
       else
-        watchers.each { |w| normalize_watcher(w) }
+        watchers.each { |w| normalize_watcher(w, options[:from]) }
       end
       @targets = Array(options[:to]).map { |to| Target.new(to, options) }
     end
@@ -71,10 +25,8 @@ module Guard
     # Call once when Guard starts. Please override initialize method to init stuff.
     # @raise [:task_has_failed] when start has failed
     def start
-      # TODO: This :from validation should probably go in the FromOption class,
-      #       but then we have to do something with the :to validation...
       validate_presence_of(:from)
-      from.validate_is_directory!
+      validate_from_is_directory
       validate_presence_of(:to)
       validate_to_patterns_are_not_absolute
       validate_to_does_not_start_with_from
@@ -124,8 +76,6 @@ module Guard
 
     private
 
-    attr_reader :from
-
     def target_paths
       @targets.map { |t| t.paths }.flatten
     end
@@ -133,15 +83,15 @@ module Guard
     def with_all_target_paths(paths)
       paths.each do |from_path|
         target_paths.each do |target_path|
-          to_path = from.substitute_target_path(from_path, target_path)
+          to_path = from_path.sub(@options[:from], target_path)
           yield(from_path, to_path)
         end
       end
     end
 
-    def normalize_watcher(watcher)
-      unless watcher.pattern.source =~ %r{^\^#{from.path}/.*}
-        normalized_source = watcher.pattern.source.sub(%r{^\^?(#{from.path})?/?}, "^#{from.path}/")
+    def normalize_watcher(watcher, from)
+      unless watcher.pattern.source =~ %r{^\^#{from}/.*}
+        normalized_source = watcher.pattern.source.sub(%r{^\^?(#{from})?/?}, "^#{from}/")
         UI.info('Guard::Copy is changing watcher pattern:')
         UI.info("  #{watcher.pattern.source}")
         UI.info('to:')
@@ -157,8 +107,21 @@ module Guard
       end
     end
 
+    def validate_from_is_directory
+      path = options[:from]
+      unless File.directory?(path)
+        if File.file?(path)
+          UI.error("Guard::Copy - '#{path}' is a file and must be a directory")
+          throw :task_has_failed
+        else
+          UI.error("Guard::Copy - :from option does not contain a valid directory")
+          throw :task_has_failed
+        end
+      end
+    end
+
     def validate_to_does_not_start_with_from
-      if Array(options[:to]).any? { |to| to.start_with?(from.path) }
+      if Array(options[:to]).any? { |to| to.start_with?(options[:from]) }
         UI.error('Guard::Copy - :to must not start with :from')
         throw :task_has_failed
       end
@@ -215,7 +178,7 @@ module Guard
     def display_target_paths
       if target_paths.any?
         UI.info("Guard::Copy - files in:")
-        UI.info("  #{from.path}")
+        UI.info("  #{options[:from]}")
         UI.info("will be copied to#{ ' and removed from' if options[:delete] }:")
         target_paths.each { |target_path| UI.info("  #{target_path}") }
       end
