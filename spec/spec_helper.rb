@@ -4,14 +4,6 @@ require 'guard/copy'
 
 ENV['GUARD_ENV'] = 'test'
 
-# monkey patch for now
-FakeFS::FakeDir.class_eval do
-
-  # we need to be able to set mtime for newest directory tests
-  attr_accessor :mtime
-
-end
-
 module FileHelpers
 
   # convert the path to the fakefs path
@@ -25,8 +17,8 @@ module FileHelpers
   end
 
   def dir(d, mtime = nil)
-    dir = FileUtils.mkpath(d)
-    dir.mtime = Time.utc(mtime) if mtime
+    FileUtils.mkpath(d)
+    FileUtils.touch(Dir.glob(d), :mtime => Time.utc(mtime)) if mtime
   end
 
 end
