@@ -8,31 +8,31 @@ module Guard
       describe 'watchers' do
 
         it 'creates a single watcher with :from if no watchers are defined' do
-          guard = Copy.new([], :from => 'source')
+          guard = Copy.new(:from => 'source')
           guard.watchers.count.should == 1
           guard.watchers.first.pattern.source.should == '^source/.*$'
         end
 
         it 'preserves watchers that start with ^ and :from' do
-          guard = Copy.new([Watcher.new(%r{^source/.+\.js$})], :from => 'source')
+          guard = Copy.new(:watchers => [Watcher.new(%r{^source/.+\.js$})], :from => 'source')
           guard.watchers.count.should == 1
           guard.watchers.first.pattern.source.should == '^source/.+\.js$'
         end
 
         it 'prepends watchers with ^' do
-          guard = Copy.new([Watcher.new(%r{source/.+\.js$})], :from => 'source')
+          guard = Copy.new(:watchers => [Watcher.new(%r{source/.+\.js$})], :from => 'source')
           guard.watchers.count.should == 1
           guard.watchers.first.pattern.source.should == '^source/.+\.js$'
         end
 
         it 'prepends watchers with :from' do
-          guard = Copy.new([Watcher.new(%r{^.+\.js$})], :from => 'source')
+          guard = Copy.new(:watchers => [Watcher.new(%r{^.+\.js$})], :from => 'source')
           guard.watchers.count.should == 1
           guard.watchers.first.pattern.source.should == '^source/.+\.js$'
         end
 
         it 'prepends watchers with ^ and :from' do
-          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+          guard = Copy.new(:watchers => [Watcher.new(%r{.+\.js$})], :from => 'source')
           guard.watchers.count.should == 1
           guard.watchers.first.pattern.source.should == '^source/.+\.js$'
         end
@@ -42,11 +42,11 @@ module Guard
           UI.should_receive(:info).with('  .+\.js$')
           UI.should_receive(:info).with('to:')
           UI.should_receive(:info).with('  ^source/.+\.js$')
-          guard = Copy.new([Watcher.new(%r{.+\.js$})], :from => 'source')
+          guard = Copy.new(:watchers => [Watcher.new(%r{.+\.js$})], :from => 'source')
         end
 
         it 'handles multiple watchers' do
-          guard = Copy.new([
+          guard = Copy.new(:watchers => [
             Watcher.new(%r{^.+\.js$}),
             Watcher.new(%r{^.+\.html$})
           ], :from => 'source')
@@ -60,14 +60,14 @@ module Guard
 
         context 'with a single target' do
           it 'creates a target' do
-            guard = Copy.new([], :to => 'target')
+            guard = Copy.new(:to => 'target')
             guard.targets.map { |t| t.pattern }.should == ['target']
           end
         end
 
         context 'with multiple targets' do
           it 'creates all targets' do
-            guard = Copy.new([], :to => ['t1', 't2', 't3'])
+            guard = Copy.new(:to => ['t1', 't2', 't3'])
             guard.targets.map { |t| t.pattern }.should == ['t1', 't2', 't3']
           end
         end
@@ -89,14 +89,14 @@ module Guard
           end
 
           it 'throws :task_has_failed when :from directory does not exist' do
-            guard = Copy.new([], :from => 'source')
+            guard = Copy.new(:from => 'source')
             UI.should_receive(:error).with('Guard::Copy - :from option does not contain a valid directory')
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
           it 'throws :task_has_failed when :from directory is a file' do
             file('source')
-            guard = Copy.new([], :from => 'source')
+            guard = Copy.new(:from => 'source')
             UI.should_receive(:error).with("Guard::Copy - 'source' is a file and must be a directory")
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
@@ -107,14 +107,14 @@ module Guard
 
           it 'throws :task_has_failed when :to is not provided' do
             dir('source')
-            guard = Copy.new([], :from => 'source')
+            guard = Copy.new(:from => 'source')
             UI.should_receive(:error).with('Guard::Copy - :to option is required')
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
           it 'throws :task_has_failed when :to starts with :from' do
             dir('source')
-            guard = Copy.new([], :from => 'source', :to => 'source')
+            guard = Copy.new(:from => 'source', :to => 'source')
             UI.should_receive(:error).with('Guard::Copy - :to must not start with :from')
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
@@ -122,14 +122,14 @@ module Guard
           it 'throws :task_has_failed when :to contains a file' do
             dir('source')
             file('target')
-            guard = Copy.new([], :from => 'source', :to => 'target')
+            guard = Copy.new(:from => 'source', :to => 'target')
             UI.should_receive(:error).with('Guard::Copy - :to option contains a file and must be all directories')
             expect { guard.start }.to throw_symbol(:task_has_failed)
           end
 
           it 'throws :task_has_failed when :to is absolute without option' do
             dir('source')
-            guard = Copy.new([], :from => 'source', :to => '/absolute/path')
+            guard = Copy.new(:from => 'source', :to => '/absolute/path')
             UI.should_receive(:error).with('Guard::Copy - :to contains an absolute path:')
             UI.should_receive(:error).with('  /absolute/path')
             UI.should_receive(:error).with('Set the :absolute option to allow absolute target paths')
@@ -142,7 +142,7 @@ module Guard
 
       it 'resolves targets' do
         dir('source')
-        guard = Copy.new([], :from => 'source', :to => ['t1', 't2', 't3'])
+        guard = Copy.new(:from => 'source', :to => ['t1', 't2', 't3'])
         guard.targets.each { |t| t.should_receive(:resolve!) }
         guard.start
       end
@@ -151,7 +151,7 @@ module Guard
         dir('source')
         dir('t1')
         dir('t2')
-        guard = Copy.new([], :from => 'source', :to => ['t1', 't2'])
+        guard = Copy.new(:from => 'source', :to => ['t1', 't2'])
         UI.should_receive(:info).with("Guard::Copy - files in:")
         UI.should_receive(:info).with("  source")
         UI.should_receive(:info).with("will be copied to:")
@@ -165,7 +165,7 @@ module Guard
           dir('source')
           dir('t1')
           dir('t2')
-          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true)
+          guard = Copy.new(:from => 'source', :to => ['t1', 't2'], :delete => true)
           UI.should_receive(:info).with("Guard::Copy - files in:")
           UI.should_receive(:info).with("  source")
           UI.should_receive(:info).with("will be copied to and removed from:")
@@ -178,7 +178,7 @@ module Guard
       context 'when :run_at_start is true' do
         it 'executes #run_all' do
           dir('source')
-          guard = Copy.new([], :from => 'source', :to => 'target', :run_at_start => true)
+          guard = Copy.new(:from => 'source', :to => 'target', :run_at_start => true)
           guard.should_receive(:run_all)
           guard.start
         end
@@ -198,7 +198,7 @@ module Guard
         end
 
         let(:guard) do
-          Copy.new([
+          Copy.new(:watchers => [
             Watcher.new(%r{^.+\.js$}),
             Watcher.new(%r{^.+\.css$})
           ], :from => 'source', :to => 'target')
@@ -225,7 +225,7 @@ module Guard
 
       it 'throws :task_has_failed when :to has no valid targets' do
         dir('source')
-        guard = Copy.new([], :from => 'source', :to => 'invalid_target')
+        guard = Copy.new(:from => 'source', :to => 'invalid_target')
         UI.should_receive(:error).with("Guard::Copy - cannot copy, no valid :to directories")
         guard.start
         expect { guard.run_on_changes([]) }.to throw_symbol(:task_has_failed)
@@ -234,7 +234,7 @@ module Guard
       it 'throws :task_has_failed when full target path does not exist' do
         dir('source/some/path/to/some')
         dir('target')
-        guard = Copy.new([], :from => 'source', :to => 'target')
+        guard = Copy.new(:from => 'source', :to => 'target')
         UI.should_receive(:error).with('Guard::Copy - cannot copy, directory path does not exist:')
         UI.should_receive(:error).with("  #{'target/some/path/to/some'}")
         guard.start
@@ -246,7 +246,7 @@ module Guard
       it 'creates directories in target when full target path does not exist and :mkpath option is enabled' do
         file('source/some/path/to/some/file')
         dir('target')
-        guard = Copy.new([], :mkpath => true, :from => 'source', :to => 'target')
+        guard = Copy.new(:mkpath => true, :from => 'source', :to => 'target')
         guard.start
         guard.run_on_changes(['source/some/path/to/some/file'])
 
@@ -258,7 +258,7 @@ module Guard
         file('source/foo')
         dir('t1')
         dir('t2')
-        guard = Copy.new([], :from => 'source', :to => ['t1', 't2'])
+        guard = Copy.new(:from => 'source', :to => ['t1', 't2'])
         guard.start
 
         guard.run_on_changes(['source/foo'])
@@ -270,7 +270,7 @@ module Guard
       it 'warns when a directory containing a "." is changed' do
         dir('source/dotted.name')
         dir('target/dotted.name')
-        guard = Copy.new([], :from => 'source', :to => 'target')
+        guard = Copy.new(:from => 'source', :to => 'target')
         guard.start
 
         UI.should_receive(:warning).with('matched path is a directory; skipping')
@@ -284,7 +284,7 @@ module Guard
           file('source/foo')
           dir('/t1')
           dir('/t2')
-          guard = Copy.new([], :from => 'source', :to => ['/t1', '/t2'], :absolute => true)
+          guard = Copy.new(:from => 'source', :to => ['/t1', '/t2'], :absolute => true)
           guard.start
 
           guard.run_on_changes(['source/foo'])
@@ -298,7 +298,7 @@ module Guard
         it 'does not log copy operation' do
           file('source/foo')
           dir('target')
-          guard = Copy.new([], :from => 'source', :to => 'target')
+          guard = Copy.new(:from => 'source', :to => 'target')
           guard.start
           UI.should_not_receive(:info)
 
@@ -311,7 +311,7 @@ module Guard
           file('source/foo')
           dir('t1')
           dir('t2')
-          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :verbose => true)
+          guard = Copy.new(:from => 'source', :to => ['t1', 't2'], :verbose => true)
           guard.start
           UI.should_receive(:info).with("copying to #{'t1/foo'}")
           UI.should_receive(:info).with("copying to #{'t2/foo'}")
@@ -327,7 +327,7 @@ module Guard
       context 'with no valid targets' do
         it 'throws :task_has_failed' do
           dir('source')
-          guard = Copy.new([], :from => 'source', :to => 'invalid_target', :delete => true)
+          guard = Copy.new(:from => 'source', :to => 'invalid_target', :delete => true)
           UI.should_receive(:error).with("Guard::Copy - cannot delete, no valid :to directories")
           guard.start
           expect { guard.run_on_removals([]) }.to throw_symbol(:task_has_failed)
@@ -338,7 +338,7 @@ module Guard
         it 'throws :task_has_failed' do
           file('source/foo')
           dir('target')
-          guard = Copy.new([], :from => 'source', :to => 'target', :delete => true)
+          guard = Copy.new(:from => 'source', :to => 'target', :delete => true)
           UI.should_receive(:error).with("Guard::Copy - cannot delete, file does not exist:")
           UI.should_receive(:error).with("  #{'target/foo'}")
           guard.start
@@ -351,7 +351,7 @@ module Guard
           file('source/foo')
           file('t1/foo')
           file('t2/foo')
-          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true)
+          guard = Copy.new(:from => 'source', :to => ['t1', 't2'], :delete => true)
           guard.start
 
           guard.run_on_removals(['source/foo'])
@@ -366,7 +366,7 @@ module Guard
           file('source/foo')
           file('/t1/foo')
           file('/t2/foo')
-          guard = Copy.new([], :from => 'source', :to => ['/t1', '/t2'], :delete => true, :absolute => true)
+          guard = Copy.new(:from => 'source', :to => ['/t1', '/t2'], :delete => true, :absolute => true)
           guard.start
 
           guard.run_on_removals(['source/foo'])
@@ -381,7 +381,7 @@ module Guard
           file('source/foo')
           file('t1/foo')
           file('t2/foo')
-          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => false)
+          guard = Copy.new(:from => 'source', :to => ['t1', 't2'], :delete => false)
           guard.start
 
           guard.run_on_removals(['source/foo'])
@@ -395,7 +395,7 @@ module Guard
         it 'does not log delete operation' do
           file('source/foo')
           file('target/foo')
-          guard = Copy.new([], :from => 'source', :to => 'target', :delete => true)
+          guard = Copy.new(:from => 'source', :to => 'target', :delete => true)
           guard.start
           UI.should_not_receive(:info)
 
@@ -408,7 +408,7 @@ module Guard
           file('source/foo')
           file('t1/foo')
           file('t2/foo')
-          guard = Copy.new([], :from => 'source', :to => ['t1', 't2'], :delete => true, :verbose => true)
+          guard = Copy.new(:from => 'source', :to => ['t1', 't2'], :delete => true, :verbose => true)
           guard.start
           UI.should_receive(:info).with("deleting #{'t1/foo'}")
           UI.should_receive(:info).with("deleting #{'t2/foo'}")

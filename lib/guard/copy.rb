@@ -1,24 +1,28 @@
 require 'guard'
-require 'guard/guard'
+require 'guard/plugin'
 require 'fileutils'
 
 module Guard
-  class Copy < Guard
+  class Copy < Plugin
 
     autoload :Target, 'guard/copy/target'
 
     attr_reader :targets
 
-    # Initialize a Guard.
-    # @param [Array<Guard::Watcher>] watchers the Guard file watchers
-    # @param [Hash] options the custom Guard options
-    def initialize(watchers = [], options = {})
+    # Initializes a Guard plugin.
+    # Don't do any work here, especially as Guard plugins get initialized even
+    # if they are not in an active group!
+    #
+    # @param [Hash] options the Guard plugin options
+    # @option options [Array<Guard::Watcher>] watchers the Guard plugin file
+    #   watchers
+    # @option options [Symbol] group the group this Guard plugin belongs to
+    # @option options [Boolean] any_return allow any object to be returned from
+    #   a watcher
+    #
+    def initialize(options = {})
+      inject_watchers(options)
       super
-      if watchers.empty?
-        watchers << ::Guard::Watcher.new(%r{^#{options[:from]}/.*$})
-      else
-        watchers.each { |w| normalize_watcher(w, options[:from]) }
-      end
       @targets = Array(options[:to]).map { |to| Target.new(to, options) }
     end
 
@@ -75,6 +79,14 @@ module Guard
     end
 
     private
+
+    def inject_watchers(options)
+      if !options[:watchers] || options[:watchers].empty?
+        options[:watchers] = [::Guard::Watcher.new(%r{^#{options[:from]}/.*$})]
+      else
+        options[:watchers].each { |w| normalize_watcher(w, options[:from]) }
+      end
+    end
 
     def target_paths
       @targets.map { |t| t.paths }.flatten

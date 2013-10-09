@@ -8,7 +8,6 @@ group :development do
   gem 'guard-cucumber', '>= 1.0'
   gem 'aruba', '~> 0.5'
   gem 'debugger'
-  gem 'rb-fsevent'
 end
 
 group :test do
