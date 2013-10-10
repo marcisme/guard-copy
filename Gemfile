@@ -6,7 +6,6 @@ gemspec
 group :development do
   gem 'guard-rspec', '>= 1.0'
   gem 'guard-cucumber', '>= 1.0'
-  gem 'aruba', '~> 0.5'
   gem 'debugger'
 end
 
@@ -15,4 +14,5 @@ group :test do
   gem 'rake', '>= 0.9.2'
   gem 'rspec', '>= 2.10.0'
   gem 'fakefs', '>= 0.4.0'
+  gem 'aruba', '~> 0.5'
 end
