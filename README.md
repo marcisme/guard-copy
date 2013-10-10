@@ -3,7 +3,7 @@
 Copy guard copies files to one or more locations whenever files are
 created or modified.
 
-* Tested against Ruby 1.8.7, 1.9.2, 1.9.3, and the latest versions of JRuby
+* Tested against Ruby 1.9.3, 2.0.0 and the latest version of JRuby
 
 ## Installation
 
