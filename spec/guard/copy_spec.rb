@@ -219,6 +219,19 @@ module Guard
 
       end
 
+      context 'file without extension' do
+
+        it 'copies the file' do
+          file('source/file_without_extension')
+          dir('target')
+          guard = Copy.new(:from => 'source', :to => 'target')
+          guard.start
+          guard.run_all
+          File.should be_file('target/file_without_extension')
+        end
+
+      end
+
     end
 
     describe '#run_on_changes' do
