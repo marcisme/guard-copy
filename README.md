@@ -57,17 +57,17 @@ the directory specified by the `:from` option to that specified by the
 ### List of available options:
 
 ``` ruby
-:from         => 'source' # directory to copy files from
-:to           => 'target' # directory or glob to copy files to; string or array
-:glob         => :newest  # how to handle globs; default: :all
-                          #   :newest - copy to only the newest directory
-                          #   :all    - copy to all directories
-:mkpath       => true     # create directories in target when full target path
-                          # does not exist; default: false
-:delete       => true     # delete files from target directories; default: false
-:verbose      => true     # log all operations as info messages; default: false
-:absolute     => true     # allow absolute paths for :to; default: false
-:run_at_start => true     # copy all files at startup (does not remove any files)
+:from         => 'SOURCE_DIR' # directory to copy files from
+:to           => 'TARGET_DIR' # directory or glob to copy files to; string or array
+:glob         => :all         # how to handle globs — options:
+                              #   :newest - copy to only the newest directory
+                              #   :all    - copy to all directories
+:mkpath       => false        # create directories in target when full target path
+                              # does not exist
+:delete       => false        # delete files from target directories
+:verbose      => false        # log all operations as info messages
+:absolute     => false        # allow absolute paths for :to
+:run_at_start => false        # copy all files at startup (does not remove any files)
 ```
 
 ## Watchers
